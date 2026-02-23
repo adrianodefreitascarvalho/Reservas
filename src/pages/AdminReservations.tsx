@@ -29,6 +29,26 @@ const DEPOSIT_MAP: Record<string, string> = {
   returned: "Devolvida",
 };
 
+interface Reservation {
+  id: string;
+  room_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  responsible_name: string;
+  event_type?: string;
+  num_people?: number;
+  contact?: string;
+  deposit_amount?: number;
+  deposit_status: "pending" | "paid" | "returned";
+  menu_choice?: string;
+  menu_price?: number;
+  observations?: string;
+  admin_observations?: string;
+  status: "pending" | "confirmed" | "cancelled" | "archived";
+  rooms?: { name: string };
+}
+
 interface AdminReservationsProps {
   archivedOnly?: boolean;
 }
@@ -42,9 +62,9 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
   const { data: rawReservations, isLoading } = useReservations({
     status: archivedOnly ? "archived" : (statusFilter !== "all" ? statusFilter : undefined),
     room_id: roomFilter !== "all" ? roomFilter : undefined,
-  });
+  }) as { data: Reservation[] | undefined; isLoading: boolean };
 
-  const reservations = rawReservations?.filter((r: any) => {
+  const reservations = rawReservations?.filter((r: Reservation) => {
     if (archivedOnly) return true;
     if (statusFilter === "all") return r.status !== "archived";
     return true;
@@ -52,20 +72,21 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
 
   const updateReservation = useUpdateReservation();
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState<any>({ deposit_status: "pending" });
+  const [editForm, setEditForm] = useState<Partial<Reservation>>({ deposit_status: "pending" });
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [archiveDates, setArchiveDates] = useState({ start: "", end: "" });
 
-  const handleAction = async (id: string, updates: any) => {
+  const handleAction = async (id: string, updates: Partial<Reservation>) => {
     try {
-      await updateReservation.mutateAsync({ id, ...updates });
-      toast({ title: "Reserva atualizada" });
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await updateReservation.mutateAsync({ id, ...updates } as any);
+      toast({ title: "Reserva actualizada" });
+    } catch (err) {
+      toast({ title: "Erro", description: (err as Error).message, variant: "destructive" });
     }
   };
 
-  const openEdit = (reservation: any) => {
+  const openEdit = (reservation: Reservation) => {
     setEditForm({
       id: reservation.id,
       room_id: reservation.room_id,
@@ -96,16 +117,18 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
 
   const handleArchive = async () => {
     if (!archiveDates.start || !archiveDates.end) {
-      toast({ title: "Erro", description: "Selecione as datas de início e fim.", variant: "destructive" });
+      toast({ title: "Erro", description: "Seleccione as datas de início e fim.", variant: "destructive" });
       return;
     }
 
     try {
       const { error } = await supabase
         .from("reservations")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .update({ status: "archived" } as any)
         .gte("date", archiveDates.start)
         .lte("date", archiveDates.end)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .neq("status", "archived" as any);
 
       if (error) throw error;
@@ -113,12 +136,12 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
       toast({ title: "Sucesso", description: "Reservas arquivadas com sucesso." });
       setIsArchiveOpen(false);
       qc.invalidateQueries({ queryKey: ["reservations"] });
-    } catch (err: any) {
-      toast({ title: "Erro ao arquivar", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Erro ao arquivar", description: (err as Error).message, variant: "destructive" });
     }
   };
 
-  const openDeposits = reservations?.filter((r: any) => (r.deposit_status === "paid" || r.deposit_status === "pending") && r.status !== "cancelled" && Number(r.deposit_amount) > 0) ?? [];
+  const openDeposits = reservations?.filter((r: Reservation) => (r.deposit_status === "paid" || r.deposit_status === "pending") && r.status !== "cancelled" && Number(r.deposit_amount) > 0) ?? [];
 
   return (
     <div className="space-y-6">
@@ -135,7 +158,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
           <div className="flex flex-wrap gap-3 items-center justify-between">
             <div className="flex gap-3">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Estado" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="pending">Pendentes</SelectItem>
@@ -144,7 +167,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
               </SelectContent>
             </Select>
             <Select value={roomFilter} onValueChange={setRoomFilter}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Sala" /></SelectTrigger>
+              <SelectTrigger className="w-45"><SelectValue placeholder="Sala" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as salas</SelectItem>
                 {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
@@ -172,7 +195,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reservations?.map((r: any) => (
+                  {reservations?.map((r: Reservation) => (
                     <TableRow key={r.id}>
                       <TableCell>{r.rooms?.name}</TableCell>
                       <TableCell>{format(new Date(r.date + "T00:00:00"), "dd/MM/yyyy")}</TableCell>
@@ -228,7 +251,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {openDeposits.map((r: any) => (
+                  {openDeposits.map((r: Reservation) => (
                   <TableRow key={r.id}>
                     <TableCell>{r.rooms?.name}</TableCell>
                     <TableCell>{format(new Date(r.date + "T00:00:00"), "dd/MM/yyyy")}</TableCell>
@@ -256,7 +279,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
         <div className="space-y-4">
           <div className="flex gap-3">
             <Select value={roomFilter} onValueChange={setRoomFilter}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Sala" /></SelectTrigger>
+              <SelectTrigger className="w-45"><SelectValue placeholder="Sala" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as salas</SelectItem>
                 {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
@@ -279,7 +302,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reservations?.map((r: any) => (
+                  {reservations?.map((r: Reservation) => (
                     <TableRow key={r.id}>
                       <TableCell>{r.rooms?.name}</TableCell>
                       <TableCell>{format(new Date(r.date + "T00:00:00"), "dd/MM/yyyy")}</TableCell>
@@ -319,7 +342,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
             <div className="space-y-2">
               <Label>Sala</Label>
               <Select value={editForm.room_id} onValueChange={v => setEditForm({ ...editForm, room_id: v })} disabled={editForm.status === 'archived'}>
-                <SelectTrigger><SelectValue placeholder="Selecione a sala" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Seleccione a sala" /></SelectTrigger>
                 <SelectContent>
                   {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
                 </SelectContent>
@@ -359,7 +382,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
             </div>
             <div className="space-y-2">
               <Label>Estado da Caução</Label>
-              <Select value={editForm.deposit_status || "pending"} onValueChange={v => setEditForm({ ...editForm, deposit_status: v })} disabled={editForm.status === 'archived'}>
+              <Select value={editForm.deposit_status || "pending"} onValueChange={v => setEditForm({ ...editForm, deposit_status: v as "pending" | "paid" | "returned" })} disabled={editForm.status === 'archived'}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">Não Paga</SelectItem>

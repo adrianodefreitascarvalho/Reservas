@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, CSSProperties } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useReservations } from "@/hooks/useReservations";
@@ -17,11 +17,31 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   archived: { label: "Arquivada", className: "bg-gray-100 text-gray-800 border-gray-300" },
 };
 
+interface Reservation {
+  id: string;
+  room_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  responsible_name: string;
+  event_type?: string;
+  num_people?: number;
+  contact?: string;
+  deposit_amount?: number;
+  deposit_status: "pending" | "paid" | "returned";
+  menu_choice?: string;
+  menu_price?: number;
+  observations?: string;
+  admin_observations?: string;
+  status: "pending" | "confirmed" | "cancelled" | "archived";
+  rooms?: { name: string; color?: string };
+}
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"month" | "week">("month");
   const [roomFilter, setRoomFilter] = useState<string>("all");
-  const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
 
   const { data: rooms } = useRooms();
 
@@ -41,7 +61,7 @@ export default function CalendarPage() {
     date_from: dateRange.from,
     date_to: dateRange.to,
     room_id: roomFilter !== "all" ? roomFilter : undefined,
-  });
+  }) as { data: Reservation[] | undefined };
 
   const navigate = (dir: number) => {
     if (view === "month") setCurrentDate(dir > 0 ? addMonths(currentDate, 1) : subMonths(currentDate, 1));
@@ -49,7 +69,7 @@ export default function CalendarPage() {
   };
 
   const dayReservations = (day: Date) =>
-    reservations?.filter((r: any) => isSameDay(new Date(r.date + "T00:00:00"), day) && r.status !== "cancelled" && r.status !== "archived") ?? [];
+    reservations?.filter((r: Reservation) => isSameDay(new Date(r.date + "T00:00:00"), day) && r.status !== "cancelled" && r.status !== "archived") ?? [];
 
   const weekDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
@@ -60,7 +80,7 @@ export default function CalendarPage() {
           <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-xl font-bold capitalize min-w-[200px] text-center">
+          <h2 className="text-xl font-bold capitalize min-w-50 text-center">
             {view === "month"
               ? format(currentDate, "MMMM yyyy", { locale: pt })
               : `Semana de ${format(dateRange.days[0], "d MMM", { locale: pt })}`}
@@ -74,7 +94,7 @@ export default function CalendarPage() {
         </div>
         <div className="flex items-center gap-2">
           <Select value={roomFilter} onValueChange={setRoomFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-45">
               <SelectValue placeholder="Todas as salas" />
             </SelectTrigger>
             <SelectContent>
@@ -84,7 +104,7 @@ export default function CalendarPage() {
               ))}
             </SelectContent>
           </Select>
-          <Tabs value={view} onValueChange={v => setView(v as any)}>
+          <Tabs value={view} onValueChange={v => setView(v as "month" | "week")}>
             <TabsList>
               <TabsTrigger value="month">Mês</TabsTrigger>
               <TabsTrigger value="week">Semana</TabsTrigger>
@@ -100,7 +120,7 @@ export default function CalendarPage() {
             <div key={d} className="py-2 text-center text-sm font-medium text-muted-foreground">{d}</div>
           ))}
         </div>
-        <div className={`grid grid-cols-7 ${view === "week" ? "min-h-[200px]" : ""}`}>
+        <div className={`grid grid-cols-7 ${view === "week" ? "min-h-50" : ""}`}>
           {dateRange.days.map((day, i) => {
             const dayRes = dayReservations(day);
             const isToday = isSameDay(day, new Date());
@@ -108,13 +128,13 @@ export default function CalendarPage() {
             return (
               <div
                 key={i}
-                className={`border-t border-r p-1 min-h-[80px] ${view === "week" ? "min-h-[150px]" : ""} ${!isCurrentMonth && view === "month" ? "bg-muted/40" : ""}`}
+                className={`border-t border-r p-1 min-h-20 ${view === "week" ? "min-h-37.5" : ""} ${!isCurrentMonth && view === "month" ? "bg-muted/40" : ""}`}
               >
                 <span className={`text-xs font-medium inline-flex h-6 w-6 items-center justify-center rounded-full ${isToday ? "bg-primary text-primary-foreground" : !isCurrentMonth ? "text-muted-foreground" : ""}`}>
                   {format(day, "d")}
                 </span>
                 <div className="mt-1 space-y-0.5">
-                  {dayRes.slice(0, 3).map((r: any) => (
+                  {dayRes.slice(0, 3).map((r: Reservation) => (
                     <button
                       key={r.id}
                       onClick={() => setSelectedReservation(r)}
@@ -137,7 +157,7 @@ export default function CalendarPage() {
       <div className="flex flex-wrap gap-3">
         {rooms?.filter(r => r.is_active).map(r => (
           <div key={r.id} className="flex items-center gap-1.5 text-sm">
-            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: r.color }} />
+            <div className="h-3 w-3 rounded-full bg-(--room-color)" style={{ "--room-color": r.color } as CSSProperties} />
             <span>{r.name}</span>
           </div>
         ))}
