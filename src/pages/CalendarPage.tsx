@@ -1,4 +1,4 @@
-import { useState, useMemo, CSSProperties } from "react";
+import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useReservations } from "@/hooks/useReservations";
@@ -157,7 +157,7 @@ export default function CalendarPage() {
       <div className="flex flex-wrap gap-3">
         {rooms?.filter(r => r.is_active).map(r => (
           <div key={r.id} className="flex items-center gap-1.5 text-sm">
-            <div className="h-3 w-3 rounded-full bg-(--room-color)" style={{ "--room-color": r.color } as CSSProperties} />
+            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: r.color }} />
             <span>{r.name}</span>
           </div>
         ))}

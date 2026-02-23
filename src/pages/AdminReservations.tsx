@@ -78,6 +78,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
 
   const handleAction = async (id: string, updates: Partial<Reservation>) => {
     try {
+      // The 'archived' status might not be in the DB schema, so we cast to 'any' to bypass the TS check.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await updateReservation.mutateAsync({ id, ...updates } as any);
       toast({ title: "Reserva actualizada" });
