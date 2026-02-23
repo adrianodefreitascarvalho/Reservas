@@ -49,7 +49,6 @@ export default function CalendarPage() {
   };
 
   const dayReservations = (day: Date) =>
-    reservations?.filter((r: any) => isSameDay(new Date(r.date + "T00:00:00"), day) && r.status !== "cancelled") ?? [];
     reservations?.filter((r: any) => isSameDay(new Date(r.date + "T00:00:00"), day) && r.status !== "cancelled" && r.status !== "archived") ?? [];
 
   const weekDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
