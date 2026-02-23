@@ -19,19 +19,20 @@ export function AppLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+    <div className="min-h-screen w-full bg-background">
+      <SidebarProvider>
         <AppSidebar />
-        <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b px-4 bg-background">
+        {/* A sidebar é fixa, então adicionamos uma margem à área de conteúdo principal em ecrãs médios ou maiores (md) */}
+        <div className="flex min-h-screen flex-col md:ml-64">
+          <header className="flex h-14 items-center border-b bg-background px-4">
             <SidebarTrigger />
             <h1 className="ml-4 text-lg font-semibold">Gestão das Reservas</h1>
           </header>
-          <main className="flex-1 p-4 md:p-6 overflow-auto">
+          <main className="flex-1 overflow-auto p-4 md:p-6">
             <Outlet />
           </main>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 }

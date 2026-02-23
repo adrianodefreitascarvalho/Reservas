@@ -29,16 +29,27 @@ const DEPOSIT_MAP: Record<string, string> = {
   returned: "Devolvida",
 };
 
-export default function AdminReservations() {
+interface AdminReservationsProps {
+  archivedOnly?: boolean;
+}
+
+export default function AdminReservations({ archivedOnly = false }: AdminReservationsProps) {
   const qc = useQueryClient();
   const { role } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roomFilter, setRoomFilter] = useState<string>("all");
   const { data: rooms } = useRooms();
-  const { data: reservations, isLoading } = useReservations({
-    status: statusFilter !== "all" ? statusFilter : undefined,
+  const { data: rawReservations, isLoading } = useReservations({
+    status: archivedOnly ? "archived" : (statusFilter !== "all" ? statusFilter : undefined),
     room_id: roomFilter !== "all" ? roomFilter : undefined,
   });
+
+  const reservations = rawReservations?.filter((r: any) => {
+    if (archivedOnly) return true;
+    if (statusFilter === "all") return r.status !== "archived";
+    return true;
+  });
+
   const updateReservation = useUpdateReservation();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<any>({ deposit_status: "pending" });
@@ -111,8 +122,9 @@ export default function AdminReservations() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Gestão de Reservas</h2>
+      <h2 className="text-2xl font-bold">{archivedOnly ? "Reservas Arquivadas" : "Gestão de Reservas"}</h2>
 
+      {!archivedOnly ? (
       <Tabs defaultValue="reservations">
         <TabsList>
           <TabsTrigger value="reservations">Reservas</TabsTrigger>
@@ -129,7 +141,6 @@ export default function AdminReservations() {
                 <SelectItem value="pending">Pendentes</SelectItem>
                 <SelectItem value="confirmed">Confirmadas</SelectItem>
                 <SelectItem value="cancelled">Canceladas</SelectItem>
-                <SelectItem value="archived">Arquivadas</SelectItem>
               </SelectContent>
             </Select>
             <Select value={roomFilter} onValueChange={setRoomFilter}>
@@ -178,7 +189,7 @@ export default function AdminReservations() {
                           <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          {r.status !== 'archived' && (
+                          {!archivedOnly && r.status !== 'archived' && (
                             <>
                               {r.status === "pending" && (
                                 <Button size="sm" onClick={() => handleAction(r.id, { status: "confirmed" })}>Confirmar</Button>
@@ -241,6 +252,58 @@ export default function AdminReservations() {
           </div>
         </TabsContent>
       </Tabs>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex gap-3">
+            <Select value={roomFilter} onValueChange={setRoomFilter}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Sala" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as salas</SelectItem>
+                {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {isLoading ? <p className="text-muted-foreground">A carregar...</p> : (
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sala</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Horário</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Caução</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reservations?.map((r: any) => (
+                    <TableRow key={r.id}>
+                      <TableCell>{r.rooms?.name}</TableCell>
+                      <TableCell>{format(new Date(r.date + "T00:00:00"), "dd/MM/yyyy")}</TableCell>
+                      <TableCell>{r.start_time?.slice(0, 5)} - {r.end_time?.slice(0, 5)}</TableCell>
+                      <TableCell>{r.responsible_name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={STATUS_MAP[r.status]?.className}>
+                          {STATUS_MAP[r.status]?.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{r.deposit_amount}€ ({DEPOSIT_MAP[r.deposit_status]})</TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      )}
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

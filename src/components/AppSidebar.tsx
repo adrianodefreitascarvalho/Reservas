@@ -1,4 +1,4 @@
-import { Calendar, Plus, List, Settings, Users, DoorOpen, LogOut } from "lucide-react";
+import { Calendar, Plus, List, Settings, Users, DoorOpen, LogOut, Archive } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -22,6 +22,7 @@ export function AppSidebar() {
     { title: "Nova Reserva", url: "/bookings/new", icon: Plus, roles: ["admin", "member"] },
     { title: "As Minhas Reservas", url: "/my-bookings", icon: List, roles: ["admin", "member"] },
     { title: "Gestão de Reservas", url: "/admin", icon: Settings, roles: ["admin"] },
+    { title: "Reservas Arquivadas", url: "/admin/archived", icon: Archive, roles: ["admin"] },
     { title: "Gestão de Salas", url: "/admin/rooms", icon: DoorOpen, roles: ["admin"] },
     { title: "Gestão de Utilizadores", url: "/admin/users", icon: Users, roles: ["admin"] },
   ];

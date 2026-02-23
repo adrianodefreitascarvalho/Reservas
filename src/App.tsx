@@ -45,6 +45,11 @@ const App = () => (
                   <AdminReservations />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/archived" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminReservations archivedOnly={true} />
+                </ProtectedRoute>
+              } />
               <Route path="/admin/rooms" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminRooms />
