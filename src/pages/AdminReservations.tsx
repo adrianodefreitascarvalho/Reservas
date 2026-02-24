@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Pencil, Archive } from "lucide-react";
+import { Reservation } from "@/types";
+import { ReservationEditDialog } from "@/components/ReservationEditDialog";
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   pending: { label: "Pendente", className: "bg-yellow-100 text-yellow-800" },
@@ -28,26 +30,6 @@ const DEPOSIT_MAP: Record<string, string> = {
   paid: "Paga",
   returned: "Devolvida",
 };
-
-interface Reservation {
-  id: string;
-  room_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  responsible_name: string;
-  event_type?: string;
-  num_people?: number;
-  contact?: string;
-  deposit_amount?: number;
-  deposit_status: "pending" | "paid" | "returned";
-  menu_choice?: string;
-  menu_price?: number;
-  observations?: string;
-  admin_observations?: string;
-  status: "pending" | "confirmed" | "cancelled" | "archived";
-  rooms?: { name: string };
-}
 
 interface AdminReservationsProps {
   archivedOnly?: boolean;
@@ -72,7 +54,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
 
   const updateReservation = useUpdateReservation();
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<Reservation>>({ deposit_status: "pending" });
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [archiveDates, setArchiveDates] = useState({ start: "", end: "" });
 
@@ -88,30 +70,11 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
   };
 
   const openEdit = (reservation: Reservation) => {
-    setEditForm({
-      id: reservation.id,
-      room_id: reservation.room_id,
-      date: reservation.date,
-      start_time: reservation.start_time,
-      end_time: reservation.end_time,
-      responsible_name: reservation.responsible_name,
-      event_type: reservation.event_type || "",
-      num_people: reservation.num_people || 1,
-      contact: reservation.contact || "",
-      deposit_amount: Number(reservation.deposit_amount) || 0,
-      deposit_status: reservation.deposit_status || "pending",
-      menu_choice: reservation.menu_choice || "",
-      menu_price: Number(reservation.menu_price) || 0,
-      observations: reservation.observations || "",
-      admin_observations: reservation.admin_observations || "",
-      status: reservation.status,
-    });
+    setSelectedReservation(reservation);
     setIsEditOpen(true);
   };
 
-  const handleSaveEdit = async () => {
-    // Remove o ID dos dados a atualizar para evitar erro de chave primária
-    const { id, ...updates } = editForm;
+  const handleSaveEdit = async (id: string, updates: Partial<Reservation>) => {
     await handleAction(id, updates);
     setIsEditOpen(false);
   };
@@ -329,98 +292,14 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
         </div>
       )}
 
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editForm.status === 'archived' ? 'Detalhes da Reserva' : 'Editar Reserva'}</DialogTitle>
-            <DialogDescription>
-              {editForm.status === 'archived'
-                ? 'Visualização dos detalhes de uma reserva arquivada. Não é possível editar.'
-                : 'Faça as alterações necessárias nos detalhes da reserva abaixo.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            <div className="space-y-2">
-              <Label>Sala</Label>
-              <Select value={editForm.room_id} onValueChange={v => setEditForm({ ...editForm, room_id: v })} disabled={editForm.status === 'archived'}>
-                <SelectTrigger><SelectValue placeholder="Seleccione a sala" /></SelectTrigger>
-                <SelectContent>
-                  {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Data</Label>
-              <Input type="date" value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Hora Início</Label>
-              <Input type="time" value={editForm.start_time} onChange={e => setEditForm({ ...editForm, start_time: e.target.value })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Hora Fim</Label>
-              <Input type="time" value={editForm.end_time} onChange={e => setEditForm({ ...editForm, end_time: e.target.value })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Responsável</Label>
-              <Input value={editForm.responsible_name} onChange={e => setEditForm({ ...editForm, responsible_name: e.target.value })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo de Evento</Label>
-              <Input value={editForm.event_type} onChange={e => setEditForm({ ...editForm, event_type: e.target.value })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Nº Pessoas</Label>
-              <Input type="number" value={editForm.num_people} onChange={e => setEditForm({ ...editForm, num_people: parseInt(e.target.value) || 0 })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Contacto</Label>
-              <Input value={editForm.contact} onChange={e => setEditForm({ ...editForm, contact: e.target.value })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Caução (€)</Label>
-              <Input type="number" step="0.01" value={editForm.deposit_amount} onChange={e => setEditForm({ ...editForm, deposit_amount: parseFloat(e.target.value) || 0 })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Estado da Caução</Label>
-              <Select value={editForm.deposit_status || "pending"} onValueChange={v => setEditForm({ ...editForm, deposit_status: v as "pending" | "paid" | "returned" })} disabled={editForm.status === 'archived'}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Não Paga</SelectItem>
-                  <SelectItem value="paid">Paga</SelectItem>
-                  <SelectItem value="returned">Devolvida</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Menu Contratado</Label>
-              <Input value={editForm.menu_choice} onChange={e => setEditForm({ ...editForm, menu_choice: e.target.value })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2">
-              <Label>Valor Menu (€)</Label>
-              <Input type="number" step="0.01" value={editForm.menu_price} onChange={e => setEditForm({ ...editForm, menu_price: parseFloat(e.target.value) || 0 })} disabled={editForm.status === 'archived'} />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Observações (Operador)</Label>
-              <Input value={editForm.observations} onChange={e => setEditForm({ ...editForm, observations: e.target.value })} disabled={editForm.status === 'archived' || role === 'admin'} />
-            </div>
-            {(role === 'admin' || role === 'direction') && (
-              <div className="space-y-2 md:col-span-2">
-                <Label>Observações (Admin)</Label>
-                <Input value={editForm.admin_observations} onChange={e => setEditForm({ ...editForm, admin_observations: e.target.value })} disabled={editForm.status === 'archived'} />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              {editForm.status === 'archived' ? 'Fechar' : 'Cancelar'}
-            </Button>
-            {editForm.status !== 'archived' && (
-              <Button onClick={handleSaveEdit} disabled={updateReservation.isPending}>Guardar Alterações</Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ReservationEditDialog
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        reservation={selectedReservation}
+        onSave={handleSaveEdit}
+        userRole={role}
+        isSaving={updateReservation.isPending}
+      />
 
       <Dialog open={isArchiveOpen} onOpenChange={setIsArchiveOpen}>
         <DialogContent>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, CSSProperties } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useReservations } from "@/hooks/useReservations";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Reservation } from "@/types";
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   pending: { label: "Pendente", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
@@ -16,26 +17,6 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   cancelled: { label: "Cancelada", className: "bg-red-100 text-red-800 border-red-300" },
   archived: { label: "Arquivada", className: "bg-gray-100 text-gray-800 border-gray-300" },
 };
-
-interface Reservation {
-  id: string;
-  room_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  responsible_name: string;
-  event_type?: string;
-  num_people?: number;
-  contact?: string;
-  deposit_amount?: number;
-  deposit_status: "pending" | "paid" | "returned";
-  menu_choice?: string;
-  menu_price?: number;
-  observations?: string;
-  admin_observations?: string;
-  status: "pending" | "confirmed" | "cancelled" | "archived";
-  rooms?: { name: string; color?: string };
-}
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -157,7 +138,7 @@ export default function CalendarPage() {
       <div className="flex flex-wrap gap-3">
         {rooms?.filter(r => r.is_active).map(r => (
           <div key={r.id} className="flex items-center gap-1.5 text-sm">
-            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: r.color }} />
+            <div className="h-3 w-3 rounded-full bg-(--room-color)" style={{ "--room-color": r.color } as CSSProperties} />
             <span>{r.name}</span>
           </div>
         ))}
