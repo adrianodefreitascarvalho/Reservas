@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Trash2, Plus, Pencil } from "lucide-react";
+import { Trash2, Plus, Pencil, Search } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { UserEditDialog } from "@/components/UserEditDialog";
 
@@ -31,6 +31,7 @@ export default function AdminUsers() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: users, isLoading, isError, error } = useQuery({
     queryKey: ["admin-users"],
@@ -101,29 +102,51 @@ export default function AdminUsers() {
     }
     setIsCreating(true);
     try {
-      // @ts-expect-error RPC function might not be in types yet
-      const { error } = await supabase.rpc('create_new_user', {
+      // 1. Criar um cliente temporário para não fazer logout do admin atual
+      const tempClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false, // Não guardar sessão no browser
+            detectSessionInUrl: false
+          }
+        }
+      );
+
+      // 2. Criar o utilizador usando a API oficial (cria corretamente auth.users e auth.identities)
+      const { error: signUpError } = await tempClient.auth.signUp({
         email: newUser.email,
         password: newUser.password,
-        role: newUser.role
       });
 
-      if (error) {
-        if (error.message.includes("User already registered")) {
-          throw new Error("Este email já está registado no sistema.");
-        }
-        throw error;
-      }
+      if (signUpError) throw signUpError;
 
-      toast({ title: "Utilizador criado", description: "O utilizador foi registado com sucesso." });
+      // 3. Confirmar o email e definir o papel usando a nossa função segura de admin
+      // @ts-expect-error RPC function might not be in types yet
+      const { error: confirmError } = await supabase.rpc('admin_confirm_user', {
+        target_email: newUser.email,
+        target_role: newUser.role
+      });
+
+      if (confirmError) throw confirmError;
+
+      toast({ title: "Utilizador criado", description: "O utilizador foi registado e confirmado com sucesso." });
       setIsCreateOpen(false);
       setNewUser({ email: "", password: "", role: "member" });
       
       // Atualiza a lista imediatamente
       qc.invalidateQueries({ queryKey: ["admin-users"] });
+
     } catch (err) {
       const error = err as Error;
-      toast({ title: "Erro ao criar", description: error.message, variant: "destructive" });
+        // Trata erros específicos da função RPC e do Supabase
+        if (error.message.includes("User already registered") || error.message.includes("Este email já está registado")) {
+          toast({ title: "Erro ao criar", description: "Este email já está registado no sistema.", variant: "destructive" });
+        } else {
+          toast({ title: "Erro ao criar", description: error.message, variant: "destructive" });
+        }
     } finally {
       setIsCreating(false);
     }
@@ -159,13 +182,29 @@ export default function AdminUsers() {
 
   const ROLE_LABELS: Record<string, string> = { admin: "Administrador", member: "Operador", direction: "Direcção" };
 
+  const filteredUsers = users?.filter(u => 
+    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (ROLE_LABELS[u.role] || u.role).toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Gestão de Utilizadores</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold whitespace-nowrap">Gestão de Utilizadores</h2>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pesquisar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+          </div>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Novo Utilizador
         </Button>
+        </div>
       </div>
       
       <div className="border rounded-lg">
@@ -178,12 +217,12 @@ export default function AdminUsers() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users?.length === 0 && (
+            {filteredUsers?.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground py-4">Nenhum utilizador encontrado.</TableCell>
               </TableRow>
             )}
-            {users?.map((u) => (
+            {filteredUsers?.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium">{u.email}</TableCell>
                 <TableCell>
