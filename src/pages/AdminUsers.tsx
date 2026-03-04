@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { UserEditDialog } from "@/components/UserEditDialog";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -28,6 +29,8 @@ export default function AdminUsers() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newUser, setNewUser] = useState({ email: "", password: "", role: "member" as AppRole });
   const [isCreating, setIsCreating] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const { data: users, isLoading, isError, error } = useQuery({
     queryKey: ["admin-users"],
@@ -73,6 +76,19 @@ export default function AdminUsers() {
       } else {
         toast({ title: "Erro ao remover", description: err.message, variant: "destructive" });
       }
+    },
+  });
+
+  const updateUserPassword = useMutation({
+    mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
+      const { error } = await supabase.auth.admin.updateUserById(userId, { password });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Password atualizada com sucesso" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erro ao atualizar password", description: err.message, variant: "destructive" });
     },
   });
 
@@ -158,6 +174,31 @@ export default function AdminUsers() {
     }
   };
 
+  const handleEditUser = (user: UserWithRole) => {
+    setEditingUser(user);
+    setIsEditOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSaveUser = async (id: string | null, updates: any) => {
+    if (!id || !editingUser) return;
+
+    try {
+      if (updates.role && updates.role !== editingUser.role) {
+        await updateRole.mutateAsync({ id, role: updates.role });
+      }
+
+      if (updates.password && updates.password.trim() !== "") {
+        await updateUserPassword.mutateAsync({ userId: editingUser.user_id, password: updates.password });
+      }
+
+      setIsEditOpen(false);
+      setEditingUser(null);
+    } catch (error) {
+      // Errors are handled in mutations
+    }
+  };
+
   if (isLoading) return <p className="text-muted-foreground">A carregar...</p>;
   if (isError) return <p className="text-destructive">Erro ao carregar utilizadores: {(error as Error).message}. Verifique se a função 'get_users_with_roles' foi criada na base de dados.</p>;
 
@@ -203,6 +244,10 @@ export default function AdminUsers() {
                   </Select>
                 </TableCell>
                 <TableCell>
+                  <div className="flex gap-2">
+                  <Button size="icon" variant="ghost" onClick={() => handleEditUser(u)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="destructive"
                     size="icon"
@@ -217,6 +262,7 @@ export default function AdminUsers() {
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -261,6 +307,15 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UserEditDialog
+        key={editingUser?.id}
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        user={editingUser}
+        onSave={handleSaveUser}
+        isSaving={updateRole.isPending || updateUserPassword.isPending}
+      />
     </div>
   );
 }
