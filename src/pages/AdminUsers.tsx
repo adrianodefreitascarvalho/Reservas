@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { createClient } from "@supabase/supabase-js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,8 +15,16 @@ import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
+interface UserWithRole {
+  id: string;
+  user_id: string;
+  email: string;
+  role: AppRole;
+}
+
 export default function AdminUsers() {
   const qc = useQueryClient();
+  const { user: adminUser } = useAuth();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newUser, setNewUser] = useState({ email: "", password: "", role: "member" as AppRole });
   const [isCreating, setIsCreating] = useState(false);
@@ -24,9 +33,10 @@ export default function AdminUsers() {
     queryKey: ["admin-users"],
     queryFn: async () => {
       // Usa a função segura RPC para obter utilizadores e emails
-      const { data, error } = await supabase.rpc("get_users_with_roles" as any);
+      // @ts-expect-error A função RPC pode não estar nos tipos gerados se não forem atualizados
+      const { data, error } = await supabase.rpc("get_users_with_roles");
       if (error) throw error;
-      return data as any[];
+      return data as unknown as UserWithRole[];
     },
   });
 
@@ -39,22 +49,30 @@ export default function AdminUsers() {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
       toast({ title: "Papel atualizado" });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
     },
   });
 
   const deleteUser = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("user_roles").delete().eq("id", id);
+    mutationFn: async (userIdToDelete: string) => {
+      // Esta operação requer privilégios de administrador no cliente Supabase (usando a service_role key).
+      // A função `deleteUser` remove o utilizador da tabela `auth.users`.
+      // A linha correspondente em `user_roles` deve ser eliminada em cascata (ON DELETE CASCADE na foreign key).
+      const { error } = await supabase.auth.admin.deleteUser(userIdToDelete);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast({ title: "Utilizador removido" });
+      toast({ title: "Utilizador removido com sucesso" });
     },
-    onError: (err: any) => {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    onError: (err: Error) => {
+      const error = err as Error;
+      if (error.message?.includes("User not found")) {
+        toast({ title: "Erro", description: "Utilizador não encontrado na autenticação. A conta pode já ter sido removida.", variant: "destructive" });
+      } else {
+        toast({ title: "Erro ao remover", description: err.message, variant: "destructive" });
+      }
     },
   });
 
@@ -128,11 +146,12 @@ export default function AdminUsers() {
       
       // Atualiza a lista imediatamente
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-    } catch (err: any) {
-      if (err.message?.includes("user_roles_user_id_fkey")) {
+    } catch (err) {
+      const error = err as Error;
+      if (error.message?.includes("user_roles_user_id_fkey")) {
         toast({ title: "Erro ao criar", description: "Não foi possível associar o papel. O utilizador pode já existir ou houve um erro de sincronização.", variant: "destructive" });
       } else {
-        toast({ title: "Erro ao criar", description: err.message, variant: "destructive" });
+        toast({ title: "Erro ao criar", description: error.message, variant: "destructive" });
       }
     } finally {
       setIsCreating(false);
@@ -159,7 +178,7 @@ export default function AdminUsers() {
             <TableRow>
               <TableHead>Email</TableHead>
               <TableHead>Papel</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
+              <TableHead className="w-25">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -168,12 +187,12 @@ export default function AdminUsers() {
                 <TableCell colSpan={3} className="text-center text-muted-foreground py-4">Nenhum utilizador encontrado.</TableCell>
               </TableRow>
             )}
-            {users?.map((u: any) => (
+            {users?.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium">{u.email}</TableCell>
                 <TableCell>
-                  <Select value={u.role} onValueChange={(v: AppRole) => updateRole.mutate({ id: u.id, role: v })}>
-                    <SelectTrigger className="w-[160px]">
+                  <Select value={u.role} onValueChange={(v) => updateRole.mutate({ id: u.id, role: v as AppRole })}>
+                    <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -188,10 +207,13 @@ export default function AdminUsers() {
                     variant="destructive"
                     size="icon"
                     onClick={() => {
-                      if (window.confirm("Tem a certeza que deseja remover o acesso deste utilizador?")) {
-                        deleteUser.mutate(u.id);
+                      if (window.confirm("Tem a certeza que deseja remover este utilizador? Esta ação é irreversível e irá apagar permanentemente a conta.")) {
+                        // Assumimos que a RPC `get_users_with_roles` retorna `user_id` que é o ID de `auth.users`
+                        deleteUser.mutate(u.user_id);
                       }
                     }}
+                    // Impede que o administrador se apague a si mesmo
+                    disabled={adminUser?.id === u.user_id}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
