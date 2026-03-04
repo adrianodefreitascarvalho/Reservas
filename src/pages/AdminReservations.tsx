@@ -37,7 +37,7 @@ interface AdminReservationsProps {
 
 export default function AdminReservations({ archivedOnly = false }: AdminReservationsProps) {
   const qc = useQueryClient();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roomFilter, setRoomFilter] = useState<string>("all");
   const { data: rooms } = useRooms();
@@ -106,6 +106,9 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
   };
 
   const openDeposits = reservations?.filter((r: Reservation) => (r.deposit_status === "paid" || r.deposit_status === "pending") && r.status !== "cancelled" && Number(r.deposit_amount) > 0) ?? [];
+
+  const isSuperAdmin = user?.email === "adrianodefreitascarvalho@gmail.com";
+  const effectiveRole = isSuperAdmin ? "admin" : role;
 
   return (
     <div className="space-y-6">
@@ -297,7 +300,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
         onOpenChange={setIsEditOpen}
         reservation={selectedReservation}
         onSave={handleSaveEdit}
-        userRole={role}
+        userRole={effectiveRole}
         isSaving={updateReservation.isPending}
       />
 

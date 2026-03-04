@@ -1,4 +1,4 @@
-import { useState, CSSProperties } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyReservations, useUpdateReservation } from "@/hooks/useReservations";
@@ -39,7 +39,8 @@ export default function MyBookings() {
 
   const handleSaveEdit = async (id: string, updates: Partial<Reservation>) => {
     try {
-      await updateReservation.mutateAsync({ id, ...updates });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await updateReservation.mutateAsync({ id, ...updates } as any);
       toast({ title: "Reserva atualizada" });
       setIsEditOpen(false);
     } catch (err) {
@@ -48,6 +49,9 @@ export default function MyBookings() {
   };
 
   if (isLoading) return <p className="text-muted-foreground">A carregar...</p>;
+
+  const isSuperAdmin = user?.email === "adrianodefreitascarvalho@gmail.com";
+  const effectiveRole = isSuperAdmin ? "admin" : role;
 
   return (
     <div className="space-y-4">
@@ -71,7 +75,7 @@ export default function MyBookings() {
                 <TableRow key={r.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-(--room-color)" style={{ "--room-color": r.rooms?.color } as CSSProperties} />
+                      <div className={`h-3 w-3 rounded-full border bg-[${r.rooms?.color ?? 'transparent'}]`} />
                       {r.rooms?.name}
                     </div>
                   </TableCell>
@@ -106,7 +110,7 @@ export default function MyBookings() {
         onOpenChange={setIsEditOpen}
         reservation={selectedReservation}
         onSave={handleSaveEdit}
-        userRole={role}
+        userRole={effectiveRole}
         isSaving={updateReservation.isPending}
       />
     </div>

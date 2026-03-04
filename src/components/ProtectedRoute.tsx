@@ -10,11 +10,14 @@ interface Props {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: Props) {
-  const { role, loading } = useAuth();
+  const { role, loading, user } = useAuth();
 
   if (loading) return <p className="text-muted-foreground p-6">A carregar...</p>;
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
+  const isSuperAdmin = user?.email === "adrianodefreitascarvalho@gmail.com";
+  const effectiveRole = isSuperAdmin ? "admin" : role;
+
+  if (allowedRoles && effectiveRole && !allowedRoles.includes(effectiveRole)) {
     return <Navigate to="/calendar" replace />;
   }
 
