@@ -59,10 +59,8 @@ export default function AdminUsers() {
 
   const deleteUser = useMutation({
     mutationFn: async (userIdToDelete: string) => {
-      // Esta operação requer privilégios de administrador no cliente Supabase (usando a service_role key).
-      // A função `deleteUser` remove o utilizador da tabela `auth.users`.
-      // A linha correspondente em `user_roles` deve ser eliminada em cascata (ON DELETE CASCADE na foreign key).
-      const { error } = await supabase.auth.admin.deleteUser(userIdToDelete);
+      // @ts-expect-error RPC function might not be in types yet
+      const { error } = await supabase.rpc('delete_user', { target_user_id: userIdToDelete });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -81,7 +79,11 @@ export default function AdminUsers() {
 
   const updateUserPassword = useMutation({
     mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
-      const { error } = await supabase.auth.admin.updateUserById(userId, { password });
+      // @ts-expect-error RPC function might not be in types yet
+      const { error } = await supabase.rpc('update_user_password', { 
+        target_user_id: userId, 
+        new_password: password 
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -97,63 +99,20 @@ export default function AdminUsers() {
       toast({ title: "Erro", description: "Preencha o email e a password.", variant: "destructive" });
       return;
     }
-
     setIsCreating(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error("Chaves do Supabase não configuradas corretamente.");
-      }
-
-      // Criamos um cliente temporário para não fazer logout do admin atual ao criar o novo user
-      const tempClient = createClient(
-        supabaseUrl,
-        supabaseKey,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-            detectSessionInUrl: false,
-          },
-        }
-      );
-
-      const { data, error } = await tempClient.auth.signUp({
+      // @ts-expect-error RPC function might not be in types yet
+      const { error } = await supabase.rpc('create_new_user', {
         email: newUser.email,
         password: newUser.password,
-        options: {
-          data: {
-            role: newUser.role // O trigger na base de dados usará isto para definir o papel
-          }
-        }
+        role: newUser.role
       });
 
-      if (error) throw error;
-
-      // Verifica se o utilizador já existe (Supabase retorna user falso com identities vazio se email enumeration protection estiver ativo)
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        throw new Error("Este email já está registado no sistema.");
-      }
-
-      // Garantir que o papel é atribuído corretamente na base de dados
-      if (data.user) {
-        // Aguarda um momento para o trigger da BD processar (se existir)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Verifica se o papel foi criado automaticamente
-        const { data: roles } = await supabase.from("user_roles").select("*").eq("user_id", data.user.id);
-        
-        if (!roles || roles.length === 0) {
-          // Se não foi criado, insere manualmente usando as permissões de Admin
-          const { error: insertError } = await supabase.from("user_roles").insert({ user_id: data.user.id, role: newUser.role });
-          if (insertError) throw insertError;
-        } else if (roles[0].role !== newUser.role) {
-          // Se foi criado mas com papel diferente (ex: default member), corrige
-          const { error: updateError } = await supabase.from("user_roles").update({ role: newUser.role }).eq("id", roles[0].id);
-          if (updateError) throw updateError;
+      if (error) {
+        if (error.message.includes("User already registered")) {
+          throw new Error("Este email já está registado no sistema.");
         }
+        throw error;
       }
 
       toast({ title: "Utilizador criado", description: "O utilizador foi registado com sucesso." });
@@ -164,11 +123,7 @@ export default function AdminUsers() {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
     } catch (err) {
       const error = err as Error;
-      if (error.message?.includes("user_roles_user_id_fkey")) {
-        toast({ title: "Erro ao criar", description: "Não foi possível associar o papel. O utilizador pode já existir ou houve um erro de sincronização.", variant: "destructive" });
-      } else {
-        toast({ title: "Erro ao criar", description: error.message, variant: "destructive" });
-      }
+      toast({ title: "Erro ao criar", description: error.message, variant: "destructive" });
     } finally {
       setIsCreating(false);
     }
