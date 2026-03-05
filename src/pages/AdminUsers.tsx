@@ -36,11 +36,25 @@ export default function AdminUsers() {
   const { data: users, isLoading, isError, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      // Usa a função segura RPC para obter utilizadores e emails
-      // @ts-expect-error A função RPC pode não estar nos tipos gerados se não forem atualizados
-      const { data, error } = await supabase.rpc("get_users_with_roles");
-      if (error) throw error;
-      return data as unknown as UserWithRole[];
+      const { data, error } = await supabase.from("user_roles").select(`
+        id,
+        user_id,
+        role,
+        users ( email )
+      `);
+
+      if (error) {
+        if (error.code === "42501") {
+          // permission denied
+          throw new Error("Acesso negado. Verifique as políticas de RLS para 'user_roles' e 'auth.users'.");
+        }
+        throw error;
+      }
+
+      return data.map((u) => ({
+        id: u.id, user_id: u.user_id, role: u.role, email: u.users?.email || "Email não encontrado",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      })) as any as UserWithRole[];
     },
   });
 
@@ -178,7 +192,10 @@ export default function AdminUsers() {
   };
 
   if (isLoading) return <p className="text-muted-foreground">A carregar...</p>;
-  if (isError) return <p className="text-destructive">Erro ao carregar utilizadores: {(error as Error).message}. Verifique se a função 'get_users_with_roles' foi criada na base de dados.</p>;
+  if (isError)
+    return (
+      <p className="text-destructive">Erro ao carregar utilizadores: {(error as Error).message}</p>
+    );
 
   const ROLE_LABELS: Record<string, string> = { admin: "Administrador", member: "Operador", direction: "Direcção" };
 

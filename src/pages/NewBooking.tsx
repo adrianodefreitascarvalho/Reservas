@@ -51,7 +51,7 @@ export default function NewBooking() {
     setChecking(false);
   };
 
-  const update = (field: string, value: any) => {
+  const update = (field: string, value: string | number) => {
     const next = { ...form, [field]: value };
     setForm(next);
     if (["room_id", "date", "start_time", "end_time"].includes(field)) {
@@ -63,6 +63,11 @@ export default function NewBooking() {
     }
   };
 
+  const selectedRoom = rooms?.find(r => r.id === form.room_id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const maxCapacity = (selectedRoom as any)?.max_capacity;
+  const capacityExceeded = maxCapacity && form.num_people > maxCapacity;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -70,12 +75,17 @@ export default function NewBooking() {
       toast({ title: "Conflito de horário", description: "Já existe uma reserva neste horário.", variant: "destructive" });
       return;
     }
+    if (capacityExceeded) {
+      toast({ title: "Capacidade excedida", description: `A capacidade máxima desta sala é de ${maxCapacity} pessoas.`, variant: "destructive" });
+      return;
+    }
     try {
-      await createReservation.mutateAsync({ ...form, user_id: user.id });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await createReservation.mutateAsync({ ...form, user_id: user.id } as any);
       toast({ title: "Reserva criada!", description: "A reserva foi submetida em estado pendente." });
       navigate("/my-bookings");
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Erro", description: (err as Error).message, variant: "destructive" });
     }
   };
 
@@ -112,6 +122,9 @@ export default function NewBooking() {
 
           {conflict && (
             <p className="text-sm text-destructive font-medium">⚠️ Já existe uma reserva neste horário para esta sala.</p>
+          )}
+          {capacityExceeded && (
+            <p className="text-sm text-destructive font-medium">⚠️ A capacidade máxima desta sala é de {maxCapacity} pessoas.</p>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -160,7 +173,7 @@ export default function NewBooking() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={createReservation.isPending || conflict}>
+          <Button type="submit" className="w-full" disabled={createReservation.isPending || conflict || capacityExceeded}>
             {createReservation.isPending ? "A submeter..." : "Submeter Reserva"}
           </Button>
         </form>

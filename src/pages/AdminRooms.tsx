@@ -9,44 +9,57 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil } from "lucide-react";
 
+interface Room {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  is_active: boolean;
+  max_capacity?: number;
+}
+
 export default function AdminRooms() {
   const { data: rooms, isLoading } = useRooms();
   const createRoom = useCreateRoom();
   const updateRoom = useUpdateRoom();
-  const [dialog, setDialog] = useState<{ open: boolean; mode: "create" | "edit"; room?: any }>({ open: false, mode: "create" });
-  const [form, setForm] = useState({ name: "", description: "", color: "#3B82F6" });
+  const [dialog, setDialog] = useState<{ open: boolean; mode: "create" | "edit"; room?: Room }>({ open: false, mode: "create" });
+  const [form, setForm] = useState({ name: "", description: "", color: "#3B82F6", max_capacity: 0 });
 
   const openCreate = () => {
-    setForm({ name: "", description: "", color: "#3B82F6" });
+    setForm({ name: "", description: "", color: "#3B82F6", max_capacity: 0 });
     setDialog({ open: true, mode: "create" });
   };
 
-  const openEdit = (room: any) => {
-    setForm({ name: room.name, description: room.description ?? "", color: room.color });
+  const openEdit = (room: Room) => {
+    setForm({ name: room.name, description: room.description ?? "", color: room.color, max_capacity: room.max_capacity ?? 0 });
     setDialog({ open: true, mode: "edit", room });
   };
 
   const handleSave = async () => {
     try {
       if (dialog.mode === "create") {
-        await createRoom.mutateAsync(form);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await createRoom.mutateAsync(form as any);
         toast({ title: "Sala criada" });
       } else {
-        await updateRoom.mutateAsync({ id: dialog.room.id, ...form });
+        if (!dialog.room) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await updateRoom.mutateAsync({ id: dialog.room.id, ...form } as any);
         toast({ title: "Sala atualizada" });
       }
       setDialog({ open: false, mode: "create" });
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Erro", description: (err as Error).message, variant: "destructive" });
     }
   };
 
-  const toggleActive = async (room: any) => {
+  const toggleActive = async (room: Room) => {
     try {
-      await updateRoom.mutateAsync({ id: room.id, is_active: !room.is_active });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await updateRoom.mutateAsync({ id: room.id, is_active: !room.is_active } as any);
       toast({ title: room.is_active ? "Sala desativada" : "Sala ativada" });
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Erro", description: (err as Error).message, variant: "destructive" });
     }
   };
 
@@ -68,6 +81,7 @@ export default function AdminRooms() {
               <TableHead>Cor</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Descrição</TableHead>
+              <TableHead>Capacidade</TableHead>
               <TableHead>Ativa</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
@@ -85,11 +99,12 @@ export default function AdminRooms() {
                 </TableCell>
                 <TableCell className="font-medium">{r.name}</TableCell>
                 <TableCell>{r.description}</TableCell>
+                <TableCell>{(r as unknown as Room).max_capacity ? `${(r as unknown as Room).max_capacity} pax` : "-"}</TableCell>
                 <TableCell>
-                  <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r)} />
+                  <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r as unknown as Room)} />
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(r)}>
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(r as unknown as Room)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </TableCell>
@@ -113,6 +128,10 @@ export default function AdminRooms() {
             <div className="space-y-2">
               <Label>Descrição</Label>
               <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Capacidade Máxima</Label>
+              <Input type="number" min={0} value={form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: parseInt(e.target.value) || 0 }))} />
             </div>
             <div className="space-y-2">
               <Label>Cor</Label>
