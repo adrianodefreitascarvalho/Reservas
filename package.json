@@ -85,6 +85,7 @@
     "jsdom": "^28.1.0",
     "lovable-tagger": "^1.1.13",
     "postcss": "^8.5.6",
+    "supabase": "^2.76.17",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1",

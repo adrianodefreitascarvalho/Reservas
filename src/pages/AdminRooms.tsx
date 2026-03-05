@@ -81,7 +81,7 @@ export default function AdminRooms() {
               <TableHead>Cor</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead>Capacidade</TableHead>
+              <TableHead>Capacidade Máxima</TableHead>
               <TableHead>Ativa</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
@@ -99,7 +99,7 @@ export default function AdminRooms() {
                 </TableCell>
                 <TableCell className="font-medium">{r.name}</TableCell>
                 <TableCell>{r.description}</TableCell>
-                <TableCell>{(r as unknown as Room).max_capacity ? `${(r as unknown as Room).max_capacity} pax` : "-"}</TableCell>
+                <TableCell>{(r as unknown as Room).max_capacity !== undefined && (r as unknown as Room).max_capacity !== null ? `${(r as unknown as Room).max_capacity} pax` : "-"}</TableCell>
                 <TableCell>
                   <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r as unknown as Room)} />
                 </TableCell>

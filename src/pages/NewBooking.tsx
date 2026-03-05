@@ -64,8 +64,7 @@ export default function NewBooking() {
   };
 
   const selectedRoom = rooms?.find(r => r.id === form.room_id);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const maxCapacity = (selectedRoom as any)?.max_capacity;
+  const maxCapacity = (selectedRoom as unknown as { max_capacity?: number })?.max_capacity;
   const capacityExceeded = maxCapacity && form.num_people > maxCapacity;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,7 +101,14 @@ export default function NewBooking() {
               <Select value={form.room_id} onValueChange={v => update("room_id", v)}>
                 <SelectTrigger><SelectValue placeholder="Selecione a sala" /></SelectTrigger>
                 <SelectContent>
-                  {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                  {rooms?.map(r => {
+                    const capacity = (r as unknown as { max_capacity?: number }).max_capacity;
+                    return (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name} {capacity ? `(${capacity} pax)` : ""}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
