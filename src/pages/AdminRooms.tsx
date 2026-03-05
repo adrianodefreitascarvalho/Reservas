@@ -38,11 +38,13 @@ export default function AdminRooms() {
   const handleSave = async () => {
     try {
       if (dialog.mode === "create") {
-        await createRoom.mutateAsync(form);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await createRoom.mutateAsync(form as any);
         toast({ title: "Sala criada" });
       } else {
         if (!dialog.room) return;
-        await updateRoom.mutateAsync({ id: dialog.room.id, ...form });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await updateRoom.mutateAsync({ id: dialog.room.id, ...form } as any);
         toast({ title: "Sala atualizada" });
       }
       setDialog({ open: false, mode: "create" });
@@ -127,7 +129,7 @@ export default function AdminRooms() {
               <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <Label>Capacidade Máxima</Label>
+              <Label>Capacidade Máxima (Max Pax)</Label>
               <Input type="number" min={0} value={form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: parseInt(e.target.value) || 0 }))} placeholder="Nº de pessoas" />
             </div>
             <div className="space-y-2">
