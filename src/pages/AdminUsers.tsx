@@ -11,10 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Trash2, Plus, Pencil, Search } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
 import { UserEditDialog } from "@/components/UserEditDialog";
 
-type AppRole = Database["public"]["Enums"]["app_role"];
+type AppRole = "admin" | "member" | "direction";
 
 interface UserWithRole {
   id: string;
@@ -74,7 +73,6 @@ export default function AdminUsers() {
 
   const deleteUser = useMutation({
     mutationFn: async (userIdToDelete: string) => {
-      // @ts-expect-error RPC function might not be in types yet
       const { error } = await supabase.rpc('delete_user', { target_user_id: userIdToDelete });
       if (error) throw error;
     },
@@ -94,7 +92,6 @@ export default function AdminUsers() {
 
   const updateUserPassword = useMutation({
     mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
-      // @ts-expect-error RPC function might not be in types yet
       const { error } = await supabase.rpc('update_user_password', { 
         target_user_id: userId, 
         new_password: password 
@@ -138,7 +135,6 @@ export default function AdminUsers() {
       if (signUpError) throw signUpError;
 
       // 3. Confirmar o email e definir o papel usando a nossa função segura de admin
-      // @ts-expect-error RPC function might not be in types yet
       const { error: confirmError } = await supabase.rpc('admin_confirm_user', {
         target_email: newUser.email,
         target_role: newUser.role

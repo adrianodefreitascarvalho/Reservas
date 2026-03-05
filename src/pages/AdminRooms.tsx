@@ -12,10 +12,10 @@ import { Plus, Pencil } from "lucide-react";
 interface Room {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   color: string;
   is_active: boolean;
-  max_capacity?: number;
+  max_capacity: number | null;
 }
 
 export default function AdminRooms() {
@@ -38,13 +38,11 @@ export default function AdminRooms() {
   const handleSave = async () => {
     try {
       if (dialog.mode === "create") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await createRoom.mutateAsync(form as any);
+        await createRoom.mutateAsync(form);
         toast({ title: "Sala criada" });
       } else {
         if (!dialog.room) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await updateRoom.mutateAsync({ id: dialog.room.id, ...form } as any);
+        await updateRoom.mutateAsync({ id: dialog.room.id, ...form });
         toast({ title: "Sala atualizada" });
       }
       setDialog({ open: false, mode: "create" });
@@ -55,8 +53,7 @@ export default function AdminRooms() {
 
   const toggleActive = async (room: Room) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await updateRoom.mutateAsync({ id: room.id, is_active: !room.is_active } as any);
+      await updateRoom.mutateAsync({ id: room.id, is_active: !room.is_active });
       toast({ title: room.is_active ? "Sala desativada" : "Sala ativada" });
     } catch (err) {
       toast({ title: "Erro", description: (err as Error).message, variant: "destructive" });
@@ -99,12 +96,12 @@ export default function AdminRooms() {
                 </TableCell>
                 <TableCell className="font-medium">{r.name}</TableCell>
                 <TableCell>{r.description}</TableCell>
-                <TableCell>{(r as unknown as Room).max_capacity !== undefined && (r as unknown as Room).max_capacity !== null ? `${(r as unknown as Room).max_capacity} pax` : "-"}</TableCell>
+                <TableCell>{r.max_capacity != null ? `${r.max_capacity} pax` : "-"}</TableCell>
                 <TableCell>
-                  <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r as unknown as Room)} />
+                  <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r)} />
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(r as unknown as Room)}>
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(r)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </TableCell>
@@ -131,7 +128,7 @@ export default function AdminRooms() {
             </div>
             <div className="space-y-2">
               <Label>Capacidade Máxima</Label>
-              <Input type="number" min={0} value={form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: parseInt(e.target.value) || 0 }))} />
+              <Input type="number" min={0} value={form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: parseInt(e.target.value) || 0 }))} placeholder="Nº de pessoas" />
             </div>
             <div className="space-y-2">
               <Label>Cor</Label>

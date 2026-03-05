@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import type { Database } from "@/integrations/supabase/types";
 
 export default function NewBooking() {
   const { user } = useAuth();
@@ -28,7 +27,7 @@ export default function NewBooking() {
     num_people: 1,
     contact: "",
     deposit_amount: 0,
-    deposit_status: "pending" as Database["public"]["Enums"]["deposit_status"],
+    deposit_status: "pending" as "pending" | "paid" | "returned",
     menu_choice: "",
     observations: "",
     menu_price: 0,
