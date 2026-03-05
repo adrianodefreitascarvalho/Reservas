@@ -51,10 +51,10 @@ export default function AdminUsers() {
         throw error;
       }
 
-      return data.map((u) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data as any[]).map((u) => ({
         id: u.id, user_id: u.user_id, role: u.role, email: u.users?.email || "Email não encontrado",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      })) as any as UserWithRole[];
+      })) as UserWithRole[];
     },
   });
 
