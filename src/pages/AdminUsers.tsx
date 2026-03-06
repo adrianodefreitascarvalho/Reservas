@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Trash2, Plus, Pencil, Search } from "lucide-react";
+import { ROLE_LABELS } from "@/constants";
 import { UserEditDialog } from "@/components/UserEditDialog";
 
 type AppRole = "admin" | "member" | "direction";
@@ -95,6 +96,7 @@ export default function AdminUsers() {
       }
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
       toast({ title: "Password atualizada com sucesso" });
     },
     onError: (err: Error) => {
@@ -188,8 +190,6 @@ export default function AdminUsers() {
     return (
       <p className="text-destructive">Erro ao carregar utilizadores: {(error as Error).message}</p>
     );
-
-  const ROLE_LABELS: Record<string, string> = { admin: "Administrador", member: "Operador", direction: "Direcção" };
 
   const filteredUsers = users?.filter(u => 
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -312,12 +312,10 @@ export default function AdminUsers() {
       </Dialog>
 
       <UserEditDialog
-        key={editingUser?.id}
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
         user={editingUser}
         onSave={handleSaveUser}
-        isSaving={updateRole.isPending || updateUserPassword.isPending}
       />
     </div>
   );

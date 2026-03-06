@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ROLE_LABELS } from "@/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Tipo base para um utilizador, conforme o seu plano
@@ -80,9 +81,9 @@ export function UserEditDialog({
             <Select value={formData.role || "member"} onValueChange={(v: string) => setFormData({ ...formData, role: v as 'admin' | 'member' | 'direction' })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="member">Membro</SelectItem>
-                <SelectItem value="admin">Administrador</SelectItem>
-                <SelectItem value="direction">Direção</SelectItem>
+                <SelectItem value="member">{ROLE_LABELS.member}</SelectItem>
+                <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
+                <SelectItem value="direction">{ROLE_LABELS.direction}</SelectItem>
               </SelectContent>
             </Select>
           </div>
