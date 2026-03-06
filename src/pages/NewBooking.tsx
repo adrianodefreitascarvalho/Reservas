@@ -149,29 +149,33 @@ export default function NewBooking() {
               <Label>Contacto</Label>
               <Input value={form.contact} onChange={e => update("contact", e.target.value)} />
             </div>
-            <div className="space-y-2">
-              <Label>Valor da Caução (€)</Label>
-              <Input type="number" min={0} step={0.01} value={form.deposit_amount} onChange={e => update("deposit_amount", parseFloat(e.target.value) || 0)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Estado da Caução</Label>
-              <Select value={form.deposit_status} onValueChange={v => update("deposit_status", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Não Paga</SelectItem>
-                  <SelectItem value="paid">Paga</SelectItem>
-                  <SelectItem value="returned">Devolvida</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Menu Contratado</Label>
-              <Input value={form.menu_choice} onChange={e => update("menu_choice", e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Valor de Menu (€)</Label>
-              <Input type="number" min={0} step={0.01} value={form.menu_price} onChange={e => update("menu_price", parseFloat(e.target.value) || 0)} />
-            </div>
+            {role === 'admin' && (
+              <>
+                <div className="space-y-2">
+                  <Label>Valor da Caução (€)</Label>
+                  <Input type="number" min={0} step={0.01} value={form.deposit_amount} onChange={e => update("deposit_amount", parseFloat(e.target.value) || 0)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Estado da Caução</Label>
+                  <Select value={form.deposit_status} onValueChange={v => update("deposit_status", v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Não Paga</SelectItem>
+                      <SelectItem value="paid">Paga</SelectItem>
+                      <SelectItem value="returned">Devolvida</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Menu Contratado</Label>
+                  <Input value={form.menu_choice} onChange={e => update("menu_choice", e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Valor de Menu (€)</Label>
+                  <Input type="number" min={0} step={0.01} value={form.menu_price} onChange={e => update("menu_price", parseFloat(e.target.value) || 0)} />
+                </div>
+              </>
+            )}
             <div className="space-y-2 md:col-span-2">
               <Label>Observações</Label>
               <Input value={form.observations} onChange={e => update("observations", e.target.value)} />

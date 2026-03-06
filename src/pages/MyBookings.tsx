@@ -108,7 +108,7 @@ export default function MyBookings() {
         onOpenChange={setIsEditOpen}
         reservation={selectedReservation}
         onSave={handleSaveEdit}
-        userRole={effectiveRole}
+        userRole={role}
         isSaving={updateReservation.isPending}
       />
     </div>

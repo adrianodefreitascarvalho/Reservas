@@ -298,7 +298,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
         onOpenChange={setIsEditOpen}
         reservation={selectedReservation}
         onSave={handleSaveEdit}
-        userRole={effectiveRole}
+        userRole={role}
         isSaving={updateReservation.isPending}
       />
 
