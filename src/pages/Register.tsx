@@ -12,7 +12,7 @@ import { Building2 } from "lucide-react";
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("member");
+  
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
