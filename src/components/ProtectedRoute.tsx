@@ -14,10 +14,7 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
 
   if (loading) return <p className="text-muted-foreground p-6">A carregar...</p>;
 
-  const isSuperAdmin = user?.email === "adrianodefreitascarvalho@gmail.com";
-  const effectiveRole = isSuperAdmin ? "admin" : role;
-
-  if (allowedRoles && effectiveRole && !allowedRoles.includes(effectiveRole)) {
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
     return <Navigate to="/calendar" replace />;
   }
 

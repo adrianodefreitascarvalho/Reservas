@@ -50,8 +50,6 @@ export default function MyBookings() {
 
   if (isLoading) return <p className="text-muted-foreground">A carregar...</p>;
 
-  const isSuperAdmin = user?.email === "adrianodefreitascarvalho@gmail.com";
-  const effectiveRole = isSuperAdmin ? "admin" : role;
 
   return (
     <div className="space-y-4">

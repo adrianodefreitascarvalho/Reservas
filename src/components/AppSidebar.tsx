@@ -27,10 +27,7 @@ export function AppSidebar() {
     { title: "Gestão de Utilizadores", url: "/admin/users", icon: Users, roles: ["admin"] },
   ];
 
-  const isSuperAdmin = user?.email === "adrianodefreitascarvalho@gmail.com";
-  const effectiveRole = isSuperAdmin ? "admin" : role;
-
-  const visibleItems = menuItems.filter(item => effectiveRole && item.roles.includes(effectiveRole));
+  const visibleItems = menuItems.filter(item => role && item.roles.includes(role));
 
   return (
     <Sidebar>

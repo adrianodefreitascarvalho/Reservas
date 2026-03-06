@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 
 export default function NewBooking() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const { data: rooms } = useRooms(true);
   const createReservation = useCreateReservation();
