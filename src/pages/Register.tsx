@@ -20,15 +20,9 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     
-    // Envia o role escolhido nos metadados do utilizador
     const { error } = await supabase.auth.signUp({ 
       email, 
       password,
-      options: {
-        data: {
-          role: role
-        }
-      }
     });
 
     setLoading(false);
