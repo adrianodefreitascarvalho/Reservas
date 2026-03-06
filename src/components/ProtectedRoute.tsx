@@ -14,7 +14,9 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
 
   if (loading) return <p className="text-muted-foreground p-6">A carregar...</p>;
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
     return <Navigate to="/calendar" replace />;
   }
 
