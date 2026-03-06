@@ -92,11 +92,23 @@ export default function AdminUsers() {
 
   const updateUserPassword = useMutation({
     mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
-      const { error } = await supabase.rpc('update_user_password', { 
-        target_user_id: userId, 
-        new_password: password 
-      });
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ target_user_id: userId, new_password: password }),
+        }
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to update password');
+      }
     },
     onSuccess: () => {
       toast({ title: "Password atualizada com sucesso" });
