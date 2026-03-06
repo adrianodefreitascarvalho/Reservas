@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { toast } from "@/hooks/use-toast";
 import { Building2 } from "lucide-react";
 
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("member");
+  
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -20,15 +20,9 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     
-    // Envia o role escolhido nos metadados do utilizador
     const { error } = await supabase.auth.signUp({ 
       email, 
       password,
-      options: {
-        data: {
-          role: role
-        }
-      }
     });
 
     setLoading(false);
@@ -59,19 +53,6 @@ export default function Register() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Tipo de Utilizador</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="member">Operador</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="direction">Direcção</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
