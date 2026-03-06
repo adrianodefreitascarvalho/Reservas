@@ -35,25 +35,9 @@ export default function AdminUsers() {
   const { data: users, isLoading, isError, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("user_roles").select(`
-        id,
-        user_id,
-        role,
-        users ( email )
-      `);
-
-      if (error) {
-        if (error.code === "42501") {
-          // permission denied
-          throw new Error("Acesso negado. Verifique as políticas de RLS para 'user_roles' e 'auth.users'.");
-        }
-        throw error;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (data as any[]).map((u) => ({
-        id: u.id, user_id: u.user_id, role: u.role, email: u.users?.email || "Email não encontrado",
-      })) as UserWithRole[];
+      const { data, error } = await supabase.rpc('get_users_with_roles');
+      if (error) throw error;
+      return (data as unknown as UserWithRole[]) ?? [];
     },
   });
 
