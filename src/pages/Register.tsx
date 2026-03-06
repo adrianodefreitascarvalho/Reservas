@@ -54,19 +54,6 @@ export default function Register() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Tipo de Utilizador</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="member">Operador</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="direction">Direcção</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             <Button type="submit" className="w-full" disabled={loading}>
