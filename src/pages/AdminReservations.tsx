@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Pencil, Archive } from "lucide-react";
+import { Pencil, Archive, Eye } from "lucide-react";
 import { Reservation } from "@/types";
 import { ReservationEditDialog } from "@/components/ReservationEditDialog";
 
@@ -42,10 +42,10 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roomFilter, setRoomFilter] = useState<string>("all");
   const { data: rooms } = useRooms();
-  const { data: rawReservations, isLoading } = useReservations({
+  const { data: rawReservations, isLoading, isError, error } = useReservations({
     status: archivedOnly ? "archived" : (statusFilter !== "all" ? statusFilter : undefined),
     room_id: roomFilter !== "all" ? roomFilter : undefined,
-  }) as { data: Reservation[] | undefined; isLoading: boolean };
+  }) as { data: Reservation[] | undefined; isLoading: boolean; isError: boolean; error: Error | null };
 
   const reservations = rawReservations?.filter((r: Reservation) => {
     if (archivedOnly) return true;
@@ -109,6 +109,8 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
   const openDeposits = reservations?.filter((r: Reservation) => (r.deposit_status === "paid" || r.deposit_status === "pending") && r.status !== "cancelled" && Number(r.deposit_amount) > 0) ?? [];
 
 
+  if (isError) return <div className="p-6 text-destructive">Erro ao carregar reservas: {error?.message}</div>;
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">{archivedOnly ? "Reservas Arquivadas" : "Gestão de Reservas"}</h2>
@@ -163,6 +165,11 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {reservations?.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhuma reserva encontrada.</TableCell>
+                    </TableRow>
+                  )}
                   {reservations?.map((r: Reservation) => (
                     <TableRow key={r.id}>
                       <TableCell>{r.rooms?.name}</TableCell>
@@ -178,7 +185,11 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                       <TableCell>
                         <div className="flex gap-1">
                           <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
-                            <Pencil className="h-4 w-4" />
+                            {isDirection ? (
+                              <Eye className="h-4 w-4" />
+                            ) : (
+                              <Pencil className="h-4 w-4" />
+                            )}
                           </Button>
                           {!archivedOnly && r.status !== 'archived' && !isDirection && (
                             <>
@@ -219,6 +230,11 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                 </TableRow>
               </TableHeader>
               <TableBody>
+                  {openDeposits.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma caução pendente.</TableCell>
+                    </TableRow>
+                  )}
                   {openDeposits.map((r: Reservation) => (
                   <TableRow key={r.id}>
                     <TableCell>{r.rooms?.name}</TableCell>
@@ -284,7 +300,11 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                       <TableCell>{r.deposit_amount}€ ({DEPOSIT_MAP[r.deposit_status]})</TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
-                          <Pencil className="h-4 w-4" />
+                          {isDirection ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <Pencil className="h-4 w-4" />
+                          )}
                         </Button>
                       </TableCell>
                     </TableRow>

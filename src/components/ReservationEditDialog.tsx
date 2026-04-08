@@ -59,22 +59,23 @@ export function ReservationEditDialog({
   const isArchived = formData.status === 'archived';
   const isAdmin = userRole === 'admin';
   const isDirection = userRole === 'direction';
+  const isReadOnlyForUser = isArchived || isDirection;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isArchived ? 'Detalhes da Reserva' : 'Editar Reserva'}</DialogTitle>
+          <DialogTitle>{isReadOnlyForUser ? 'Detalhes da Reserva' : 'Editar Reserva'}</DialogTitle>
           <DialogDescription>
-            {isArchived
-              ? 'Visualização dos detalhes de uma reserva arquivada. Não é possível editar.'
+            {isReadOnlyForUser
+              ? 'Visualização dos detalhes da reserva. O modo de edição está desativado para a sua categoria ou para reservas arquivadas.'
               : 'Faça as alterações necessárias nos detalhes da reserva abaixo.'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
           <div className="space-y-2">
             <Label>Sala</Label>
-            <Select value={formData.room_id} onValueChange={(v: string) => setFormData({ ...formData, room_id: v })} disabled={isArchived}>
+            <Select value={formData.room_id} onValueChange={(v: string) => setFormData({ ...formData, room_id: v })} disabled={isReadOnlyForUser}>
               <SelectTrigger><SelectValue placeholder="Seleccione a sala" /></SelectTrigger>
               <SelectContent>
                 {rooms?.map((r: {id: string, name: string}) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
@@ -83,35 +84,35 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2">
             <Label>Data</Label>
-            <Input type="date" value={formData.date} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, date: e.target.value })} disabled={isArchived} />
+            <Input type="date" value={formData.date} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, date: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Hora Início</Label>
-            <Input type="time" value={formData.start_time} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, start_time: e.target.value })} disabled={isArchived} />
+            <Input type="time" value={formData.start_time} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, start_time: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Hora Fim</Label>
-            <Input type="time" value={formData.end_time} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, end_time: e.target.value })} disabled={isArchived} />
+            <Input type="time" value={formData.end_time} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, end_time: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Responsável</Label>
-            <Input value={formData.responsible_name} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, responsible_name: e.target.value })} disabled={isArchived} />
+            <Input value={formData.responsible_name} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, responsible_name: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Tipo de Evento</Label>
-            <Input value={formData.event_type} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, event_type: e.target.value })} disabled={isArchived} />
+            <Input value={formData.event_type} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, event_type: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Nº Pessoas</Label>
-            <Input type="number" value={formData.num_people} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, num_people: parseInt(e.target.value) || 0 })} disabled={isArchived} />
+            <Input type="number" value={formData.num_people} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, num_people: parseInt(e.target.value) || 0 })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Contacto</Label>
-            <Input value={formData.contact} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, contact: e.target.value })} disabled={isArchived} />
+            <Input value={formData.contact} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, contact: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Caução (€)</Label>
-            <Input type="number" step="0.01" value={formData.deposit_amount} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, deposit_amount: parseFloat(e.target.value) || 0 })} disabled={isArchived} />
+            <Input type="number" step="0.01" value={formData.deposit_amount} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, deposit_amount: parseFloat(e.target.value) || 0 })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Estado da Caução</Label>
@@ -126,11 +127,11 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2">
             <Label>Menu Contratado</Label>
-            <Input value={formData.menu_choice} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, menu_choice: e.target.value })} disabled={isArchived} />
+            <Input value={formData.menu_choice} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, menu_choice: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Valor Menu (€)</Label>
-            <Input type="number" step="0.01" value={formData.menu_price} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, menu_price: parseFloat(e.target.value) || 0 })} disabled={isArchived} />
+            <Input type="number" step="0.01" value={formData.menu_price} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, menu_price: parseFloat(e.target.value) || 0 })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Observações (Operador)</Label>
@@ -139,7 +140,7 @@ export function ReservationEditDialog({
           {(isAdmin || isDirection) && (
             <div className="space-y-2 md:col-span-2">
               <Label>Observações (Admin)</Label>
-              <Input value={formData.admin_observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, admin_observations: e.target.value })} disabled={isArchived} />
+              <Input value={formData.admin_observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, admin_observations: e.target.value })} disabled={isReadOnlyForUser} />
             </div>
           )}
         </div>
@@ -147,7 +148,7 @@ export function ReservationEditDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {isArchived ? 'Fechar' : 'Cancelar'}
           </Button>
-          {!isArchived && (
+          {!isReadOnlyForUser && (
             <Button onClick={handleSave} disabled={isSaving}>Guardar Alterações</Button>
           )}
         </DialogFooter>
