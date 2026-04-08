@@ -38,6 +38,7 @@ interface AdminReservationsProps {
 export default function AdminReservations({ archivedOnly = false }: AdminReservationsProps) {
   const qc = useQueryClient();
   const { role, user } = useAuth();
+  const isDirection = role === 'direction';
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roomFilter, setRoomFilter] = useState<string>("all");
   const { data: rooms } = useRooms();
@@ -139,10 +140,12 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
               </SelectContent>
             </Select>
             </div>
-            <Button variant="outline" onClick={() => setIsArchiveOpen(true)}>
-              <Archive className="mr-2 h-4 w-4" />
-              Arquivar
-            </Button>
+            {!isDirection && (
+              <Button variant="outline" onClick={() => setIsArchiveOpen(true)}>
+                <Archive className="mr-2 h-4 w-4" />
+                Arquivar
+              </Button>
+            )}
           </div>
 
           {isLoading ? <p className="text-muted-foreground">A carregar...</p> : (
@@ -177,7 +180,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                           <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          {!archivedOnly && r.status !== 'archived' && (
+                          {!archivedOnly && r.status !== 'archived' && !isDirection && (
                             <>
                               {r.status === "pending" && (
                                 <Button size="sm" onClick={() => handleAction(r.id, { status: "confirmed" })}>Confirmar</Button>
@@ -223,12 +226,12 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
                     <TableCell>{r.responsible_name}</TableCell>
                     <TableCell>{r.deposit_amount}€</TableCell>
                     <TableCell>
-                      {r.deposit_status === "pending" ? (
+                      {r.deposit_status === "pending" ? !isDirection && (
                         <Button size="sm" variant="outline" onClick={() => handleAction(r.id, { deposit_status: "paid" })}>
                           Marcar Pago
                         </Button>
                       ) : (
-                        <Button size="sm" variant="outline" onClick={() => handleAction(r.id, { deposit_status: "returned" })}>
+                        !isDirection && <Button size="sm" variant="outline" onClick={() => handleAction(r.id, { deposit_status: "returned" })}>
                           Devolver Caução
                         </Button>
                       )}
