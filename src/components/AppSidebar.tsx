@@ -22,7 +22,7 @@ export function AppSidebar() {
     { title: "Nova Reserva", url: "/bookings/new", icon: Plus, roles: ["admin", "member"] },
     { title: "As Minhas Reservas", url: "/my-bookings", icon: List, roles: ["admin", "member"] },
     { title: "Gestão de Reservas", url: "/admin", icon: Settings, roles: ["admin", "direction"] },
-    { title: "Reservas Arquivadas", url: "/admin/archived", icon: Archive, roles: ["admin"] },
+    { title: "Reservas Arquivadas", url: "/admin/archived", icon: Archive, roles: ["admin", "direction"] },
     { title: "Gestão de Salas", url: "/admin/rooms", icon: DoorOpen, roles: ["admin"] },
     { title: "Gestão de Utilizadores", url: "/admin/users", icon: Users, roles: ["admin"] },
   ];

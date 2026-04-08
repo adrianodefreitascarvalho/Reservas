@@ -34,7 +34,7 @@ export function ReservationEditDialog({
   const [formData, setFormData] = useState<Partial<Reservation>>({});
   const [prevReservation, setPrevReservation] = useState<Reservation | null>(null);
 
-  // Ajustar o estado durante a renderização se a reserva mudar para evitar renders em cascata
+  // Sincronização de estado correta sem useEffect para evitar loops de render
   if (reservation !== prevReservation) {
     setPrevReservation(reservation);
     setFormData(reservation ? {
