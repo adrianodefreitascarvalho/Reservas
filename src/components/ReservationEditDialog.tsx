@@ -26,29 +26,29 @@ export function ReservationEditDialog({
 }: ReservationEditDialogProps) {
   const { data: rooms } = useRooms();
   const [formData, setFormData] = useState<Partial<Reservation>>({});
+  const [prevReservation, setPrevReservation] = useState<Reservation | null>(null);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    if (reservation) {
-      setFormData({
-        room_id: reservation.room_id,
-        date: reservation.date,
-        start_time: reservation.start_time,
-        end_time: reservation.end_time,
-        responsible_name: reservation.responsible_name,
-        event_type: reservation.event_type || "",
-        num_people: reservation.num_people || 1,
-        contact: reservation.contact || "",
-        deposit_amount: Number(reservation.deposit_amount) || 0,
-        deposit_status: reservation.deposit_status || "pending",
-        menu_choice: reservation.menu_choice || "",
-        menu_price: Number(reservation.menu_price) || 0,
-        observations: reservation.observations || "",
-        admin_observations: reservation.admin_observations || "",
-        status: reservation.status,
-      });
-    }
-  }, [reservation]);
+  // Ajustar o estado durante a renderização se a reserva mudar
+  if (reservation !== prevReservation) {
+    setPrevReservation(reservation);
+    setFormData(reservation ? {
+      room_id: reservation.room_id,
+      date: reservation.date,
+      start_time: reservation.start_time,
+      end_time: reservation.end_time,
+      responsible_name: reservation.responsible_name,
+      event_type: reservation.event_type || "",
+      num_people: reservation.num_people || 1,
+      contact: reservation.contact || "",
+      deposit_amount: Number(reservation.deposit_amount) || 0,
+      deposit_status: reservation.deposit_status || "pending",
+      menu_choice: reservation.menu_choice || "",
+      menu_price: Number(reservation.menu_price) || 0,
+      observations: reservation.observations || "",
+      admin_observations: reservation.admin_observations || "",
+      status: reservation.status,
+    } : {});
+  }
 
   const handleSave = () => {
     if (reservation) {

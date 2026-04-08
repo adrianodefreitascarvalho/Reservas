@@ -1,11 +1,11 @@
 import { useEffect, useState, ChangeEvent } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./src/components/ui/dialog";
-import { Button } from "./src/components/ui/button";
-import { Input } from "./src/components/ui/input";
-import { Label } from "./src/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./src/components/ui/select";
-import { useRooms } from "./src/hooks/useRooms";
-import { Reservation } from "./src/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useRooms } from "@/hooks/useRooms"; //
+import { Reservation } from "@/types";
 
 // Definido localmente, pois 'Room' não está exportado de '@/types'
 interface Room {
@@ -34,7 +34,7 @@ export function ReservationEditDialog({
   const [formData, setFormData] = useState<Partial<Reservation>>({});
   const [prevReservation, setPrevReservation] = useState<Reservation | null>(null);
 
-  // Ajustar o estado durante a renderização se a reserva mudar
+  // Ajustar o estado durante a renderização se a reserva mudar para evitar renders em cascata
   if (reservation !== prevReservation) {
     setPrevReservation(reservation);
     setFormData(reservation ? {
