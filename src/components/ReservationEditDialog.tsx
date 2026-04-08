@@ -135,7 +135,7 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Observações (Operador)</Label>
-            <Input value={formData.observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, observations: e.target.value })} disabled={isArchived || isAdmin} />
+            <Input value={formData.observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, observations: e.target.value })} disabled={isReadOnlyForUser || isAdmin} />
           </div>
           {(isAdmin || isDirection) && (
             <div className="space-y-2 md:col-span-2">

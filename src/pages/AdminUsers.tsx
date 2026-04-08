@@ -97,10 +97,10 @@ export default function AdminUsers() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast({ title: "Password atualizada com sucesso" });
+      toast({ title: "Password actualizada com sucesso" });
     },
     onError: (err: Error) => {
-      toast({ title: "Erro ao atualizar password", description: err.message, variant: "destructive" });
+      toast({ title: "Erro ao actualizar password", description: err.message, variant: "destructive" });
     },
   });
 
@@ -222,7 +222,7 @@ export default function AdminUsers() {
             <TableRow>
               <TableHead>Email</TableHead>
               <TableHead>Papel</TableHead>
-              <TableHead className="w-25">Ações</TableHead>
+              <TableHead className="w-25">Acções</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -255,7 +255,7 @@ export default function AdminUsers() {
                     variant="destructive"
                     size="icon"
                     onClick={() => {
-                      if (window.confirm("Tem a certeza que deseja remover este utilizador? Esta ação é irreversível e irá apagar permanentemente a conta.")) {
+                      if (window.confirm("Tem a certeza que deseja remover este utilizador? Esta acção é irreversível e irá apagar permanentemente a conta.")) {
                         // Assumimos que a RPC `get_users_with_roles` retorna `user_id` que é o ID de `auth.users`
                         deleteUser.mutate(u.user_id);
                       }
