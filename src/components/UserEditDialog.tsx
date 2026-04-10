@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,15 @@ export function UserEditDialog({
     role: user?.role || "member",
     password: "" 
   }));
+
+  useEffect(() => {
+    setFormData({
+      id: user?.id,
+      email: user?.email || "",
+      role: user?.role || "member",
+      password: ""
+    });
+  }, [user?.id, user?.email, user?.role]);
 
   const isEditing = !!user;
 
