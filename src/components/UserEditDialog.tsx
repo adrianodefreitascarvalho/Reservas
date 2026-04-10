@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,20 +6,18 @@ import { Label } from "@/components/ui/label";
 import { ROLE_LABELS } from "@/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Tipo base para um utilizador, conforme o seu plano
 interface User {
   id: string;
   email?: string;
   role?: 'admin' | 'member' | 'direction';
 }
 
-// Dados do formulário, incluindo uma possível nova password
 type UserFormData = Partial<User> & { password?: string };
 
 interface UserEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: User | null; // null para criar, objeto User para editar
+  user: User | null;
   onSave: (id: string | null, updates: UserFormData) => Promise<void>;
   isSaving?: boolean;
 }
@@ -37,15 +35,6 @@ export function UserEditDialog({
     role: user?.role || "member",
     password: "" 
   }));
-
-  useEffect(() => {
-    setFormData({
-      id: user?.id,
-      email: user?.email || "",
-      role: user?.role || "member",
-      password: ""
-    });
-  }, [user?.id, user?.email, user?.role]);
 
   const isEditing = !!user;
 

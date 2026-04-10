@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { createClient } from "@supabase/supabase-js";
@@ -31,16 +31,40 @@ export default function AdminUsers() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const { data: users, isLoading, isError, error } = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_users_with_roles');
-      if (error) throw error;
-      return (data as unknown as UserWithRole[]) ?? [];
-    },
-  });
+const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+  
+  // Fetch users function
+  const fetchUsers = React.useCallback(() => {
+    setIsLoading(true);
+    setSearchTerm("");
+    supabase.rpc('get_users_with_roles').then(({ data, error }) => {
+      if (error) {
+        setIsError(true);
+      } else {
+        setUsers(data as unknown as UserWithRole[] || []);
+        setIsError(false);
+      }
+      setIsLoading(false);
+    });
+  }, []);
+  
+  // Initial fetch
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+  
+  // Refetch when edit dialog closes - detect isEditOpen changing from true to false
+  const prevIsEditOpen = React.useRef(isEditOpen);
+  
+  React.useEffect(() => {
+    if (prevIsEditOpen.current === true && isEditOpen === false) {
+      fetchUsers();
+    }
+    prevIsEditOpen.current = isEditOpen;
+  }, [isEditOpen]);
 
   const updateRole = useMutation({
     mutationFn: async ({ id, role }: { id: string; role: AppRole }) => {
@@ -189,10 +213,10 @@ export default function AdminUsers() {
   if (isLoading) return <p className="text-muted-foreground">A carregar...</p>;
   if (isError)
     return (
-      <p className="text-destructive">Erro ao carregar utilizadores: {(error as Error).message}</p>
+      <p className="text-destructive">Erro ao carregar utilizadores</p>
     );
 
-  const filteredUsers = users?.filter(u => 
+  const filteredUsers = users.filter(u => 
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (ROLE_LABELS[u.role] || u.role).toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -318,7 +342,6 @@ export default function AdminUsers() {
           setIsEditOpen(open);
           if (!open) {
             setEditingUser(null);
-            qc.invalidateQueries({ queryKey: ["admin-users"] });
           }
         }}
         user={editingUser}
