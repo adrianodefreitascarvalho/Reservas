@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogOverlay } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,9 +51,7 @@ export function UserEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Renderiza explicitamente o DialogOverlay com um fundo mais claro e um ligeiro desfoque */}
-      <DialogOverlay className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" />
-      <DialogContent className="max-w-md bg-background border border-border shadow-2xl z-50">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
