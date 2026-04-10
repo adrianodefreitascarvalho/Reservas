@@ -109,9 +109,9 @@ export default function CalendarPage() {
             return (
               <div
                 key={i}
-                className={`border-t border-r p-1 min-h-20 ${view === "week" ? "min-h-37.5" : ""} ${!isCurrentMonth && view === "month" ? "bg-muted/40" : ""}`}
+                className={`border-t border-r p-1 min-h-20 ${view === "week" ? "min-h-37.5" : ""} ${isToday ? "bg-blue-50" : !isCurrentMonth && view === "month" ? "bg-muted/40" : ""}`}
               >
-                <span className={`text-xs font-medium inline-flex h-6 w-6 items-center justify-center rounded-full ${isToday ? "bg-primary text-primary-foreground" : !isCurrentMonth ? "text-muted-foreground" : ""}`}>
+                <span className={`text-xs font-medium inline-flex h-6 w-6 items-center justify-center rounded-full ${isToday ? "bg-blue-600 text-white ring-2 ring-blue-300" : !isCurrentMonth ? "text-muted-foreground" : ""}`}>
                   {format(day, "d")}
                 </span>
                 <div className="mt-1 space-y-0.5">
