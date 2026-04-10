@@ -99,7 +99,7 @@ export default function NewBooking() {
               <Label>Sala</Label>
               <Select value={form.room_id} onValueChange={v => update("room_id", v)}>
                 <SelectTrigger><SelectValue placeholder="Selecione a sala" /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {rooms?.map(r => {
                     const capacity = (r as unknown as { max_capacity?: number }).max_capacity;
                     return (
@@ -159,7 +159,7 @@ export default function NewBooking() {
                   <Label>Estado da Caução</Label>
                   <Select value={form.deposit_status} onValueChange={v => update("deposit_status", v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       <SelectItem value="pending">Não Paga</SelectItem>
                       <SelectItem value="paid">Paga</SelectItem>
                       <SelectItem value="returned">Devolvida</SelectItem>

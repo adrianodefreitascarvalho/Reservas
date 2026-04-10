@@ -264,7 +264,7 @@ const [searchTerm, setSearchTerm] = useState("");
                     <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
                       <SelectItem value="member">{ROLE_LABELS.member}</SelectItem>
                       <SelectItem value="direction">{ROLE_LABELS.direction}</SelectItem>
@@ -319,7 +319,7 @@ const [searchTerm, setSearchTerm] = useState("");
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
                   <SelectItem value="member">{ROLE_LABELS.member}</SelectItem>
                   <SelectItem value="direction">{ROLE_LABELS.direction}</SelectItem>

@@ -127,7 +127,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
             <div className="flex gap-3">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40"><SelectValue placeholder="Estado" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="pending">Pendentes</SelectItem>
                 <SelectItem value="confirmed">Confirmadas</SelectItem>
@@ -136,7 +136,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
             </Select>
             <Select value={roomFilter} onValueChange={setRoomFilter}>
               <SelectTrigger className="w-45"><SelectValue placeholder="Sala" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="all">Todas as salas</SelectItem>
                 {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
               </SelectContent>
@@ -264,7 +264,7 @@ export default function AdminReservations({ archivedOnly = false }: AdminReserva
           <div className="flex gap-3">
             <Select value={roomFilter} onValueChange={setRoomFilter}>
               <SelectTrigger className="w-45"><SelectValue placeholder="Sala" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="all">Todas as salas</SelectItem>
                 {rooms?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
               </SelectContent>

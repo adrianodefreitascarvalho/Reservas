@@ -78,7 +78,7 @@ export default function CalendarPage() {
             <SelectTrigger className="w-45">
               <SelectValue placeholder="Todas as salas" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               <SelectItem value="all">Todas as salas</SelectItem>
               {rooms?.filter(r => r.is_active).map(r => (
                 <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>

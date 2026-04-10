@@ -77,7 +77,7 @@ export function ReservationEditDialog({
             <Label>Sala</Label>
             <Select value={formData.room_id} onValueChange={(v: string) => setFormData({ ...formData, room_id: v })} disabled={isReadOnlyForUser}>
               <SelectTrigger><SelectValue placeholder="Seleccione a sala" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {rooms?.map((r: {id: string, name: string}) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -118,7 +118,7 @@ export function ReservationEditDialog({
             <Label>Estado da Caução</Label>
             <Select value={formData.deposit_status || "pending"} onValueChange={(v: "pending" | "paid" | "returned") => setFormData({ ...formData, deposit_status: v })} disabled={isArchived || !isAdmin}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="pending">Não Paga</SelectItem>
                 <SelectItem value="paid">Paga</SelectItem>
                 <SelectItem value="returned">Devolvida</SelectItem>
