@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,23 +31,23 @@ export function UserEditDialog({
   onSave,
   isSaving = false
 }: UserEditDialogProps) {
-  const [formData, setFormData] = useState<UserFormData>(() => {
-    if (user) {
-      // Modo de edição: preenche o formulário com os dados do utilizador
-      return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        password: "" // Limpar sempre o campo da password por segurança
-      };
-    }
-    // Modo de criação: redefine o formulário para o estado inicial
-    return {
-      email: "",
-      password: "",
-      role: "member" // Categoria por defeito
-    };
+  const [formData, setFormData] = useState<UserFormData>({
+    email: "",
+    password: "",
+    role: "member"
   });
+
+  // Sincroniza o estado do formulário sempre que o diálogo abre ou o utilizador muda
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        id: user?.id,
+        email: user?.email || "",
+        role: user?.role || "member",
+        password: "" // Limpar sempre ao abrir para segurança e clareza
+      });
+    }
+  }, [open, user]);
 
   const isEditing = !!user;
 
