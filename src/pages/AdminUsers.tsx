@@ -146,6 +146,7 @@ export default function AdminUsers() {
       
       // Atualiza a lista imediatamente
       qc.invalidateQueries({ queryKey: ["admin-users"] });
+      setSearchTerm(""); // Limpa o termo de pesquisa após criar um utilizador
 
     } catch (err) {
       const error = err as Error;
@@ -181,6 +182,7 @@ export default function AdminUsers() {
       setEditingUser(null);
       setIsEditOpen(false);
       toast({ title: "Alterações guardadas com sucesso" });
+      setSearchTerm(""); // Limpa o termo de pesquisa após guardar as alterações
     } catch (error) {
       // Errors are handled in mutations
     }
