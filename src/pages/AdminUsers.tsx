@@ -178,8 +178,9 @@ export default function AdminUsers() {
         await updateUserPassword.mutateAsync({ userId: editingUser.user_id, password: updates.password });
       }
 
-      setIsEditOpen(false);
       setEditingUser(null);
+      setIsEditOpen(false);
+      toast({ title: "Alterações guardadas com sucesso" });
     } catch (error) {
       // Errors are handled in mutations
     }
@@ -312,10 +313,15 @@ export default function AdminUsers() {
       </Dialog>
 
       <UserEditDialog
+        key={editingUser?.user_id || 'closed'}
         open={isEditOpen}
-        onOpenChange={setIsEditOpen}
+        onOpenChange={(open) => {
+          setIsEditOpen(open);
+          if (!open) setEditingUser(null);
+        }}
         user={editingUser}
         onSave={handleSaveUser}
+        isSaving={updateRole.isPending || updateUserPassword.isPending}
       />
     </div>
   );

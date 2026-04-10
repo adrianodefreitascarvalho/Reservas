@@ -1,5 +1,5 @@
-import { useState, useEffect, type ChangeEvent } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useState, type ChangeEvent } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogOverlay } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,23 +31,12 @@ export function UserEditDialog({
   onSave,
   isSaving = false
 }: UserEditDialogProps) {
-  const [formData, setFormData] = useState<UserFormData>({
-    email: "",
-    password: "",
-    role: "member"
-  });
-
-  // Sincroniza o estado do formulário sempre que o diálogo abre ou o utilizador muda
-  useEffect(() => {
-    if (open) {
-      setFormData({
-        id: user?.id,
-        email: user?.email || "",
-        role: user?.role || "member",
-        password: "" // Limpar sempre ao abrir para segurança e clareza
-      });
-    }
-  }, [open, user]);
+  const [formData, setFormData] = useState<UserFormData>(() => ({
+    id: user?.id,
+    email: user?.email || "",
+    role: user?.role || "member",
+    password: "" 
+  }));
 
   const isEditing = !!user;
 
@@ -62,7 +51,9 @@ export function UserEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      {/* Renderiza explicitamente o DialogOverlay com um fundo mais claro e um ligeiro desfoque */}
+      <DialogOverlay className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" />
+      <DialogContent className="max-w-md bg-background border border-border shadow-2xl z-50">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
