@@ -7,11 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRooms } from "@/hooks/useRooms"; //
 import { Reservation } from "@/types";
 
+// Estendemos a interface para incluir o campo total_amount que foi adicionado recentemente
+type ExtendedReservation = Reservation & { total_amount?: number };
+
 interface ReservationEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  reservation: Reservation | null;
-  onSave: (id: string, updates: Partial<Reservation>) => Promise<void>;
+  reservation: ExtendedReservation | null;
+  onSave: (id: string, updates: Partial<ExtendedReservation>) => Promise<void>;
   userRole?: string | null;
   isSaving?: boolean;
 }
@@ -25,8 +28,8 @@ export function ReservationEditDialog({
   isSaving = false 
 }: ReservationEditDialogProps) {
   const { data: rooms } = useRooms();
-  const [formData, setFormData] = useState<Partial<Reservation>>({});
-  const [prevReservation, setPrevReservation] = useState<Reservation | null>(null);
+  const [formData, setFormData] = useState<Partial<ExtendedReservation>>({});
+  const [prevReservation, setPrevReservation] = useState<ExtendedReservation | null>(null);
 
   // Ajustar o estado durante a renderização se a reserva mudar
   if (reservation !== prevReservation) {
@@ -46,6 +49,7 @@ export function ReservationEditDialog({
       menu_price: Number(reservation.menu_price) || 0,
       observations: reservation.observations || "",
       admin_observations: reservation.admin_observations || "",
+      total_amount: Number(reservation.total_amount) || (Number(reservation.num_people || 0) * Number(reservation.menu_price || 0)) || 0,
       status: reservation.status,
     } : {});
   }
@@ -104,7 +108,11 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2">
             <Label>Nº Pessoas</Label>
-            <Input type="number" value={formData.num_people} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, num_people: parseInt(e.target.value) || 0 })} disabled={isReadOnlyForUser} />
+            <Input type="number" value={formData.num_people} onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const val = parseInt(e.target.value) || 0;
+              const total = val * (formData.menu_price || 0);
+              setFormData({ ...formData, num_people: val, total_amount: total });
+            }} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Contacto</Label>
@@ -131,7 +139,15 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2">
             <Label>Valor Menu (€)</Label>
-            <Input type="number" step="0.01" value={formData.menu_price} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, menu_price: parseFloat(e.target.value) || 0 })} disabled={isReadOnlyForUser} />
+            <Input type="number" step="0.01" value={formData.menu_price} onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const val = parseFloat(e.target.value) || 0;
+              const total = (formData.num_people || 0) * val;
+              setFormData({ ...formData, menu_price: val, total_amount: total });
+            }} disabled={isReadOnlyForUser} />
+          </div>
+          <div className="space-y-2">
+            <Label>Valor Total (€)</Label>
+            <Input value={new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(formData.total_amount || 0)} disabled className="bg-slate-50 font-bold text-primary" />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Observações (Operador)</Label>
