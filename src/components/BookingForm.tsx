@@ -72,17 +72,9 @@ export function BookingForm({ defaultValues, onSubmit, userRole }: BookingFormPr
   }, [calculatedTotal, form]);
 
   const handleFormSubmit = (data: BookingFormValues) => {
-    // Criamos uma cópia dos dados para manipular
-    const filteredData: Record<string, any> = { ...data };
-
-    // Se o utilizador não for admin/direção, removemos campos sensíveis para evitar erro de RLS no Supabase
-    if (userRole !== 'admin' && userRole !== 'direction') {
-      delete filteredData.admin_observations;
-      // O Operador nunca deve tentar definir ou alterar o status manualmente para evitar o erro de permissão
-      delete filteredData.status;
-    }
-
-    onSubmit(filteredData as BookingFormValues);
+    // Enviamos todos os campos sem restrições para o Operador, 
+    // permitindo que ele edite o que vê no ecrã.
+    onSubmit(data);
   };
 
   const isAdmin = userRole === 'admin';
@@ -93,250 +85,99 @@ export function BookingForm({ defaultValues, onSubmit, userRole }: BookingFormPr
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-          <FormField
-            control={form.control}
-            name="room_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sala</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione a sala" />
-                    </SelectTrigger>
-                  </FormControl>
+          <div className="space-y-2">
+            <Label>Sala</Label>
+            <Controller
+              control={form.control}
+              name="room_id"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange} disabled={isReadOnly}>
+                  <SelectTrigger><SelectValue placeholder="Seleccione a sala" /></SelectTrigger>
                   <SelectContent className="bg-white">
-                    {rooms?.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
-                        {room.name}
-                      </SelectItem>
-                    ))}
+                    {rooms?.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="start_time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hora Início</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="end_time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hora Fim</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="responsible_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Responsável</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nome do responsável" {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="event_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Evento</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ex: Almoço, Reunião..." {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="num_people"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nº Pessoas</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    min="1" 
-                    {...field} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.valueAsNumber)}
-                    disabled={isReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contact"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contacto</FormLabel>
-                <FormControl>
-                  <Input placeholder="Telefone ou Email" {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="deposit_amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Caução (€)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    step="0.01" 
-                    min="0" 
-                    {...field}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.valueAsNumber)} 
-                    disabled={isReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="deposit_status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Estado da Caução</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o estado" />
-                    </SelectTrigger>
-                  </FormControl>
+              )}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Data</Label>
+            <Input type="date" {...form.register("date")} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Hora Início</Label>
+            <Input type="time" {...form.register("start_time")} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Hora Fim</Label>
+            <Input type="time" {...form.register("end_time")} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Responsável</Label>
+            <Input placeholder="Nome do responsável" {...form.register("responsible_name")} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Tipo de Evento</Label>
+            <Input placeholder="Ex: Almoço, Reunião..." {...form.register("event_type")} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Nº Pessoas</Label>
+            <Input type="number" min="1" {...form.register("num_people", { valueAsNumber: true })} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Contacto</Label>
+            <Input placeholder="Telefone ou Email" {...form.register("contact")} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Caução (€)</Label>
+            <Input type="number" step="0.01" min="0" {...form.register("deposit_amount", { valueAsNumber: true })} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Estado da Caução</Label>
+            <Controller
+              control={form.control}
+              name="deposit_status"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange} disabled={isReadOnly}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
                   <SelectContent className="bg-white">
                     <SelectItem value="pending">Não Paga</SelectItem>
                     <SelectItem value="paid">Paga</SelectItem>
                     <SelectItem value="returned">Devolvida</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="menu_choice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Menu Contratado</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ex: Buffet, Coffee Break..." {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="menu_price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor Menu (€)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    step="0.01" 
-                    min="0" 
-                    {...field}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.valueAsNumber)} 
-                    disabled={isReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="total_amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor Total (€)</FormLabel>
-                <FormControl>
-                  <Input 
-                    value={new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(field.value || 0)} 
-                    disabled 
-                    className="bg-slate-50 font-bold text-primary" 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="observations"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Observações (Operador)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Notas adicionais sobre a reserva" {...field} disabled={isReadOnly} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {(isAdmin || isDirection) && (
-            <FormField
-              control={form.control}
-              name="admin_observations"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Observações (Admin)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Notas visíveis apenas para administração" 
-                      {...field} 
-                      disabled={isReadOnly}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
               )}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Menu Contratado</Label>
+            <Input placeholder="Ex: Buffet, Coffee Break..." {...form.register("menu_choice")} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Valor Menu (€)</Label>
+            <Input type="number" step="0.01" min="0" {...form.register("menu_price", { valueAsNumber: true })} disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Valor Total (€)</Label>
+            <Input
+              value={new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(calculatedTotal)} 
+              disabled 
+              className="bg-slate-50 font-bold text-primary" 
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Observações (Operador)</Label>
+            <Input placeholder="Notas adicionais sobre a reserva" {...form.register("observations")} disabled={isReadOnly} />
+          </div>
+          {userRole !== 'direction' && (
+            <div className="space-y-2 md:col-span-2">
+              <Label>Observações (Admin)</Label>
+              <Input 
+                placeholder="Notas visíveis apenas para administração" 
+                {...form.register("admin_observations")} 
+                disabled={isReadOnly}
+              />
+            </div>
           )}
         </div>
 

@@ -61,14 +61,9 @@ export function ReservationEditDialog({
 
   const handleSave = () => {
     if (reservation) {
-      // Filtramos os dados para garantir que o Operador não envia campos protegidos
-      const updates = { ...formData };
-      if (userRole !== 'admin' && userRole !== 'direction') {
-        delete updates.admin_observations;
-        // REMOÇÃO CRÍTICA: O Operador não pode enviar a coluna 'status' na atualização
-        delete updates.status;
-      }
-      onSave(reservation.id, updates);
+      // Retiramos a filtragem que impedia o Operador de gravar 
+      // campos de status ou observações administrativas.
+      onSave(reservation.id, formData);
     }
   };
 
@@ -165,7 +160,7 @@ export function ReservationEditDialog({
             <Label>Observações (Operador)</Label>
             <Input value={formData.observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, observations: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
-          {(isAdmin || isDirection) && (
+          {userRole !== 'direction' && (
             <div className="space-y-2 md:col-span-2">
               <Label>Observações (Admin)</Label>
               <Input value={formData.admin_observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, admin_observations: e.target.value })} disabled={isReadOnlyForUser} />
