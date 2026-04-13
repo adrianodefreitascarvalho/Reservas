@@ -58,14 +58,14 @@ export default function StatisticsReceipts() {
       <div className="flex flex-col gap-2">
         <h2 className="text-3xl font-bold tracking-tight">Estatísticas de Receitas</h2>
         <p className="text-muted-foreground">
-          Visualização mensal dos fluxos de reservas do clube.
+          Visualização mensal dos fluxos financeiro de reservas do clube.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Receitas vs Cauções Pagas</CardTitle>
+            <CardTitle>Receitas e Cauções Pagas</CardTitle>
             <CardDescription>
               Comparação entre o total faturado (confirmadas) e o montante recebido em cauções.
             </CardDescription>

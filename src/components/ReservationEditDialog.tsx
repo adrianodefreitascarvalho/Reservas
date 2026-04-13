@@ -10,6 +10,11 @@ import { Reservation } from "@/types";
 // Estendemos a interface para incluir o campo total_amount que foi adicionado recentemente
 type ExtendedReservation = Reservation & { total_amount?: number };
 
+interface Room {
+  id: string;
+  name: string;
+}
+
 interface ReservationEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -56,7 +61,14 @@ export function ReservationEditDialog({
 
   const handleSave = () => {
     if (reservation) {
-      onSave(reservation.id, formData);
+      // Filtramos os dados para garantir que o Operador não envia campos protegidos
+      const updates = { ...formData };
+      if (userRole !== 'admin' && userRole !== 'direction') {
+        delete updates.admin_observations;
+        // REMOÇÃO CRÍTICA: O Operador não pode enviar a coluna 'status' na atualização
+        delete updates.status;
+      }
+      onSave(reservation.id, updates);
     }
   };
 
@@ -82,7 +94,7 @@ export function ReservationEditDialog({
             <Select value={formData.room_id} onValueChange={(v: string) => setFormData({ ...formData, room_id: v })} disabled={isReadOnlyForUser}>
               <SelectTrigger><SelectValue placeholder="Seleccione a sala" /></SelectTrigger>
               <SelectContent className="bg-white">
-                {rooms?.map((r: {id: string, name: string}) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                {rooms?.map((r: Room) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -109,7 +121,7 @@ export function ReservationEditDialog({
           <div className="space-y-2">
             <Label>Nº Pessoas</Label>
             <Input type="number" value={formData.num_people} onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              const val = parseInt(e.target.value) || 0;
+              const val = e.target.valueAsNumber || 0;
               const total = val * (formData.menu_price || 0);
               setFormData({ ...formData, num_people: val, total_amount: total });
             }} disabled={isReadOnlyForUser} />
@@ -120,11 +132,11 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2">
             <Label>Caução (€)</Label>
-            <Input type="number" step="0.01" value={formData.deposit_amount} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, deposit_amount: parseFloat(e.target.value) || 0 })} disabled={isReadOnlyForUser} />
+            <Input type="number" step="0.01" value={formData.deposit_amount} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, deposit_amount: e.target.valueAsNumber || 0 })} disabled={isReadOnlyForUser} />
           </div>
           <div className="space-y-2">
             <Label>Estado da Caução</Label>
-            <Select value={formData.deposit_status || "pending"} onValueChange={(v: "pending" | "paid" | "returned") => setFormData({ ...formData, deposit_status: v })} disabled={isArchived || !isAdmin}>
+            <Select value={formData.deposit_status || "pending"} onValueChange={(v: "pending" | "paid" | "returned") => setFormData({ ...formData, deposit_status: v })} disabled={isReadOnlyForUser}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent className="bg-white">
                 <SelectItem value="pending">Não Paga</SelectItem>
@@ -140,7 +152,7 @@ export function ReservationEditDialog({
           <div className="space-y-2">
             <Label>Valor Menu (€)</Label>
             <Input type="number" step="0.01" value={formData.menu_price} onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              const val = parseFloat(e.target.value) || 0;
+              const val = e.target.valueAsNumber || 0;
               const total = (formData.num_people || 0) * val;
               setFormData({ ...formData, menu_price: val, total_amount: total });
             }} disabled={isReadOnlyForUser} />
@@ -151,7 +163,7 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Observações (Operador)</Label>
-            <Input value={formData.observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, observations: e.target.value })} disabled={isReadOnlyForUser || isAdmin} />
+            <Input value={formData.observations} onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, observations: e.target.value })} disabled={isReadOnlyForUser} />
           </div>
           {(isAdmin || isDirection) && (
             <div className="space-y-2 md:col-span-2">
