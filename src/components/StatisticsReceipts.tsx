@@ -58,7 +58,7 @@ export default function StatisticsReceipts() {
       <div className="flex flex-col gap-2">
         <h2 className="text-3xl font-bold tracking-tight">Estatísticas de Receitas</h2>
         <p className="text-muted-foreground">
-          Visualização mensal dos fluxos financeiros do clube.
+          Visualização mensal dos fluxos de reservas do clube.
         </p>
       </div>
 
