@@ -12,6 +12,7 @@ import CalendarPage from "@/pages/CalendarPage";
 import NewBooking from "@/pages/NewBooking";
 import MyBookings from "@/pages/MyBookings";
 import AdminReservations from "@/pages/AdminReservations";
+import StatisticsReceipts from "@/components/StatisticsReceipts";
 import AdminRooms from "@/pages/AdminRooms";
 import AdminUsers from "@/pages/AdminUsers";
 import NotFound from "@/pages/NotFound";
@@ -50,6 +51,11 @@ const App = () => (
                   <AdminReservations archivedOnly={true} />
                 </ProtectedRoute>
               } />
+            <Route path="/statistics/receipts" element={
+              <ProtectedRoute allowedRoles={["admin", "direction"]}>
+                <StatisticsReceipts />
+              </ProtectedRoute>
+            } />
               <Route path="/admin/rooms" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminRooms />
