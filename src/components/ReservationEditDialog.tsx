@@ -7,8 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRooms } from "@/hooks/useRooms"; //
 import { Reservation } from "@/types";
 
-// Estendemos a interface para incluir o campo total_amount que foi adicionado recentemente
-type ExtendedReservation = Reservation & { total_amount?: number };
+// Estendemos a interface para incluir o campo total_amount e o novo estado da caução
+type ExtendedReservation = Omit<Reservation, 'deposit_status'> & { 
+  total_amount?: number;
+  deposit_status?: 'pending' | 'paid' | 'returned' | 'not_applicable';
+};
 
 interface Room {
   id: string;
@@ -131,12 +134,29 @@ export function ReservationEditDialog({
           </div>
           <div className="space-y-2">
             <Label>Estado da Caução</Label>
-            <Select value={formData.deposit_status || "pending"} onValueChange={(v: "pending" | "paid" | "returned") => setFormData({ ...formData, deposit_status: v })} disabled={isReadOnlyForUser}>
+            <Select value={formData.deposit_status || "pending"} onValueChange={(v: "pending" | "paid" | "returned" | "not_applicable") => setFormData({ ...formData, deposit_status: v })} disabled={isReadOnlyForUser}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent className="bg-white">
                 <SelectItem value="pending">Não Paga</SelectItem>
                 <SelectItem value="paid">Paga</SelectItem>
                 <SelectItem value="returned">Devolvida</SelectItem>
+                <SelectItem value="not_applicable">Não aplicável</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Estado da Reserva</Label>
+            <Select 
+              value={formData.status} 
+              onValueChange={(v: "pending" | "confirmed" | "cancelled" | "archived") => setFormData({ ...formData, status: v })} 
+              disabled={isReadOnlyForUser}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="confirmed" disabled={!isAdmin}>Confirmada</SelectItem>
+                <SelectItem value="cancelled">Cancelada</SelectItem>
+                {formData.status === 'archived' && <SelectItem value="archived">Arquivada</SelectItem>}
               </SelectContent>
             </Select>
           </div>

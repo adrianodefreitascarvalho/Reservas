@@ -20,7 +20,7 @@ interface BookingFormValues {
   contact: string;
   menu_choice: string;
   deposit_amount: number;
-  deposit_status: 'pending' | 'paid' | 'returned';
+  deposit_status: 'pending' | 'paid' | 'returned' | 'not_applicable';
   status: 'pending' | 'confirmed' | 'cancelled';
   observations?: string;
   admin_observations?: string;
@@ -144,6 +144,7 @@ export function BookingForm({ defaultValues, onSubmit, userRole }: BookingFormPr
                     <SelectItem value="pending">Não Paga</SelectItem>
                     <SelectItem value="paid">Paga</SelectItem>
                     <SelectItem value="returned">Devolvida</SelectItem>
+                    <SelectItem value="not_applicable">Não aplicável</SelectItem>
                   </SelectContent>
                 </Select>
               )}
